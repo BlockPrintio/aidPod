@@ -36,7 +36,7 @@ const VerificationStats = ({
     {
       title: 'Funds Verified',
       value: `${(stats?.fundsVerified || 0)?.toLocaleString()} ADA`,
-      icon: 'DollarSign',
+      icon: 'Banknote',
       color: 'text-secondary',
       bgColor: 'bg-secondary/10',
       change: stats?.fundsChange || 0,

@@ -86,7 +86,7 @@ const VerificationRequestCard = ({
               {formatAmount(request?.targetAmount)} ADA
             </div>
             <div className="text-xs text-muted-foreground">
-              ≈ ${(request?.targetAmount * 0.35)?.toFixed(0)}
+              ≈ ₦{(request?.targetAmount * 750)?.toLocaleString()}
             </div>
           </div>
           

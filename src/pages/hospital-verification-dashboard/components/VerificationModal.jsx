@@ -96,7 +96,7 @@ const VerificationModal = ({
               {formatAmount(request?.targetAmount)} ADA
             </div>
             <div className="text-sm text-muted-foreground">
-              ≈ ${(request?.targetAmount * 0.35)?.toFixed(0)} USD
+              ≈ ₦{(request?.targetAmount * 750)?.toLocaleString()}
             </div>
           </div>
           <div>
