@@ -137,11 +137,13 @@ const ProfileHeader = ({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {user?.role === 'patient' && (
             <>
-              <div className="text-center">
+              <div className="flex flex-col items-center justify-center p-2 rounded-medical hover:bg-muted/50 transition-colors">
+                <Icon name="Target" size={20} className="text-primary mb-2" />
                 <div className="text-2xl font-bold text-primary">{user?.stats?.campaignsCreated}</div>
                 <div className="text-sm text-muted-foreground">Campaigns</div>
               </div>
-              <div className="text-center">
+              <div className="flex flex-col items-center justify-center p-2 rounded-medical hover:bg-muted/50 transition-colors">
+                <Icon name="TrendingUp" size={20} className="text-secondary mb-2" />
                 <div className="text-2xl font-bold text-secondary">{user?.stats?.totalRaised?.toLocaleString()} ADA</div>
                 <div className="text-sm text-muted-foreground">Raised</div>
               </div>
@@ -150,11 +152,13 @@ const ProfileHeader = ({
           
           {user?.role === 'donor' && (
             <>
-              <div className="text-center">
+              <div className="flex flex-col items-center justify-center p-2 rounded-medical hover:bg-muted/50 transition-colors">
+                <Icon name="Heart" size={20} className="text-secondary mb-2" />
                 <div className="text-2xl font-bold text-secondary">{user?.stats?.totalDonated?.toLocaleString()} ADA</div>
                 <div className="text-sm text-muted-foreground">Donated</div>
               </div>
-              <div className="text-center">
+              <div className="flex flex-col items-center justify-center p-2 rounded-medical hover:bg-muted/50 transition-colors">
+                <Icon name="HelpingHand" size={20} className="text-primary mb-2" />
                 <div className="text-2xl font-bold text-primary">{user?.stats?.campaignsSupported}</div>
                 <div className="text-sm text-muted-foreground">Campaigns</div>
               </div>
@@ -163,23 +167,27 @@ const ProfileHeader = ({
           
           {user?.role === 'hospital' && (
             <>
-              <div className="text-center">
+              <div className="flex flex-col items-center justify-center p-2 rounded-medical hover:bg-muted/50 transition-colors">
+                <Icon name="ShieldCheck" size={20} className="text-accent mb-2" />
                 <div className="text-2xl font-bold text-accent">{user?.stats?.campaignsVerified}</div>
                 <div className="text-sm text-muted-foreground">Verified</div>
               </div>
-              <div className="text-center">
+              <div className="flex flex-col items-center justify-center p-2 rounded-medical hover:bg-muted/50 transition-colors">
+                <Icon name="ClipboardList" size={20} className="text-primary mb-2" />
                 <div className="text-2xl font-bold text-primary">{user?.stats?.pendingReviews}</div>
                 <div className="text-sm text-muted-foreground">Pending</div>
               </div>
             </>
           )}
           
-          <div className="text-center">
+          <div className="flex flex-col items-center justify-center p-2 rounded-medical hover:bg-muted/50 transition-colors">
+            <Icon name="Star" size={20} className="text-warning mb-2" />
             <div className="text-2xl font-bold text-warning">{user?.stats?.trustScore}</div>
             <div className="text-sm text-muted-foreground">Trust Score</div>
           </div>
           
-          <div className="text-center">
+          <div className="flex flex-col items-center justify-center p-2 rounded-medical hover:bg-muted/50 transition-colors">
+            <Icon name="Eye" size={20} className="text-foreground mb-2" />
             <div className="text-2xl font-bold text-foreground">{user?.stats?.profileViews}</div>
             <div className="text-sm text-muted-foreground">Profile Views</div>
           </div>

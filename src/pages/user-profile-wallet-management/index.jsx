@@ -12,7 +12,7 @@ import TransactionHistory from './components/TransactionHistory';
 import ProfileSettings from './components/ProfileSettings';
 import ActivityHistory from './components/ActivityHistory';
 import SecuritySettings from './components/SecuritySettings';
-import RoleStats from './components/RoleStats';
+import MyCampaigns from './components/MyCampaigns';
 
 const UserProfileWalletManagement = () => {
   const { user, isLoading, error } = useUser();
@@ -364,6 +364,50 @@ const UserProfileWalletManagement = () => {
     await new Promise(resolve => setTimeout(resolve, 2000));
   };
 
+  // Mock user campaigns
+  const mockUserCampaigns = [
+    {
+      id: 1,
+      title: "Emergency Heart Surgery for Sarah",
+      patientName: "Sarah Johnson",
+      age: 34,
+      medicalCondition: "Cardiac Arrhythmia",
+      urgency: "critical",
+      image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop",
+      storyPreview: "Sarah is a loving mother of two who was diagnosed with a severe cardiac arrhythmia that requires immediate surgical intervention.",
+      currentAmount: 15750,
+      targetAmount: 25000,
+      donorCount: 127,
+      daysRemaining: 18,
+      location: "Phoenix, AZ",
+      verificationStatus: "verified",
+      verifierName: "Phoenix Heart Institute",
+      verificationDate: "2025-08-10",
+      status: "active",
+      createdAt: "2025-08-01"
+    },
+    {
+      id: 4,
+      title: "Spinal Surgery Recovery for James",
+      patientName: "James Wilson",
+      age: 28,
+      medicalCondition: "Herniated Disc",
+      urgency: "moderate",
+      image: "https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=400&h=300&fit=crop",
+      storyPreview: "James suffered a severe back injury in a workplace accident. He requires spinal surgery and extensive rehabilitation.",
+      currentAmount: 5400,
+      targetAmount: 18000,
+      donorCount: 67,
+      daysRemaining: 38,
+      location: "Austin, TX",
+      verificationStatus: "pending",
+      verifierName: "",
+      verificationDate: null,
+      status: "active",
+      createdAt: "2025-08-03"
+    }
+  ];
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'profile':
@@ -392,30 +436,19 @@ const UserProfileWalletManagement = () => {
         return (
           <ActivityHistory
             activities={mockActivities}
-            userRole={userRole}
+            userRole={user?.role}
           />
         );
       case 'security':
         return (
           <SecuritySettings
-            user={mockUser}
+            user={userData}
             onUpdateSecurity={handleSecurityUpdate}
           />
         );
       case 'campaigns':
         return (
-          <div className="bg-card border border-border rounded-medical p-8 text-center">
-            <Icon name="Target" size={48} className="text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">Campaign Management</h3>
-            <p className="text-muted-foreground mb-4">
-              View and manage your medical fundraising campaigns
-            </p>
-            <Link to="/patient-campaign-creation">
-              <Button iconName="Plus" iconPosition="left">
-                Create New Campaign
-              </Button>
-            </Link>
-          </div>
+          <MyCampaigns campaigns={mockUserCampaigns} />
         );
       case 'documents':
         return (
@@ -496,7 +529,6 @@ const UserProfileWalletManagement = () => {
             onEditProfile={handleEditProfile}
             onUploadAvatar={handleUploadAvatar}
           />
-          <RoleStats user={userData} />
         </div>
 
         {/* Navigation Tabs */}
