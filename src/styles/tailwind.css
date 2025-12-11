@@ -6,59 +6,59 @@
 
 @layer base {
   :root {
-    /* Core Colors - Medical Trust Theme */
-    --color-background: hsl(210, 40%, 98%);
-    --color-foreground: hsl(222, 47%, 11%);
-    --color-border: hsl(214, 32%, 91%);
+    /* Core Colors - Medical Trust Theme (Accessible) */
+    --color-background: hsl(210, 40%, 99%);
+    --color-foreground: hsl(215, 25%, 15%);
+    --color-border: hsl(214, 20%, 90%);
     --color-input: hsl(0, 0%, 100%);
-    --color-ring: hsl(199, 89%, 48%);
+    --color-ring: hsl(215, 90%, 35%);
     
     /* Card Colors */
     --color-card: hsl(0, 0%, 100%);
-    --color-card-foreground: hsl(222, 47%, 11%);
+    --color-card-foreground: hsl(215, 25%, 15%);
     --color-popover: hsl(0, 0%, 100%);
-    --color-popover-foreground: hsl(222, 47%, 11%);
+    --color-popover-foreground: hsl(215, 25%, 15%);
     
     /* Muted Colors */
-    --color-muted: hsl(210, 40%, 96%);
-    --color-muted-foreground: hsl(215, 16%, 47%);
+    --color-muted: hsl(210, 20%, 96%);
+    --color-muted-foreground: hsl(215, 20%, 40%);
     
-    /* Primary - Cardano Blue */
-    --color-primary: hsl(199, 89%, 48%);
+    /* Primary - Trust Blue (Accessible) */
+    --color-primary: hsl(215, 90%, 35%);
     --color-primary-foreground: hsl(0, 0%, 100%);
-    --color-primary-light: hsl(199, 89%, 95%);
+    --color-primary-light: hsl(215, 90%, 95%);
     
-    /* Secondary - Trust Teal */
-    --color-secondary: hsl(166, 72%, 40%);
+    /* Secondary - Healing Teal (Accessible) */
+    --color-secondary: hsl(170, 80%, 30%);
     --color-secondary-foreground: hsl(0, 0%, 100%);
     
-    /* Accent - Healthcare Violet */
-    --color-accent: hsl(262, 83%, 58%);
+    /* Accent - Care Violet (Accessible) */
+    --color-accent: hsl(262, 60%, 50%);
     --color-accent-foreground: hsl(0, 0%, 100%);
     
     /* State Colors */
-    --color-success: hsl(152, 76%, 42%);
+    --color-success: hsl(150, 80%, 30%);
     --color-success-foreground: hsl(0, 0%, 100%);
     
-    --color-warning: hsl(38, 92%, 50%);
+    --color-warning: hsl(35, 90%, 40%);
     --color-warning-foreground: hsl(0, 0%, 100%);
     
-    --color-error: hsl(0, 84%, 60%);
+    --color-error: hsl(0, 75%, 45%);
     --color-error-foreground: hsl(0, 0%, 100%);
     
-    --color-destructive: hsl(0, 84%, 60%);
+    --color-destructive: hsl(0, 75%, 45%);
     --color-destructive-foreground: hsl(0, 0%, 100%);
     
     /* Surface Color */
     --color-surface: hsl(0, 0%, 100%);
     
     /* Text Colors */
-    --color-text-primary: hsl(222, 47%, 11%);
-    --color-text-secondary: hsl(215, 16%, 47%);
+    --color-text-primary: hsl(215, 25%, 15%);
+    --color-text-secondary: hsl(215, 20%, 40%);
     
     /* Blockchain Accent */
-    --color-blockchain: hsl(199, 89%, 48%);
-    --color-blockchain-dark: hsl(199, 100%, 35%);
+    --color-blockchain: hsl(215, 90%, 35%);
+    --color-blockchain-dark: hsl(215, 100%, 25%);
   }
 
   * {

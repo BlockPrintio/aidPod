@@ -37,7 +37,7 @@ const PatientCampaignCreation = () => {
 
   useEffect(() => {
     // Load any existing draft on component mount
-    const savedDraft = localStorage.getItem('medchain_campaign_draft');
+    const savedDraft = localStorage.getItem('aidpod_campaign_draft');
     if (savedDraft) {
       try {
         const draftData = JSON.parse(savedDraft);
@@ -155,10 +155,10 @@ const PatientCampaignCreation = () => {
       donorCount: 0
     };
 
-    localStorage.setItem(`medchain_campaign_${campaignId}`, JSON.stringify(campaignData));
+    localStorage.setItem(`aidpod_campaign_${campaignId}`, JSON.stringify(campaignData));
     
     // Clear draft
-    localStorage.removeItem('medchain_campaign_draft');
+    localStorage.removeItem('aidpod_campaign_draft');
     
     setShowSuccessModal(true);
   };

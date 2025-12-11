@@ -1,4 +1,4 @@
-export const AUTH_STORAGE_KEY = 'medchain_user';
+export const AUTH_STORAGE_KEY = 'aidpod_user';
 
 interface User {
   isAuthenticated: boolean;

@@ -15,9 +15,9 @@ const LoginForm = ({ onSubmit, isLoading }) => {
   const [showPassword, setShowPassword] = useState(false);
 
   const mockCredentials = [
-    { email: "patient@medchain.com", password: "Patient123!", type: "patient" },
-    { email: "donor@medchain.com", password: "Donor123!", type: "donor" },
-    { email: "hospital@medchain.com", password: "Hospital123!", type: "hospital" }
+    { email: "patient@aidpod.com", password: "Patient123!", type: "patient" },
+    { email: "donor@aidpod.com", password: "Donor123!", type: "donor" },
+    { email: "hospital@aidpod.com", password: "Hospital123!", type: "hospital" }
   ];
 
   const validateForm = () => {

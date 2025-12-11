@@ -72,9 +72,7 @@ const Header = ({
 
   const Logo = () => (
     <Link to="/" className="flex items-center space-x-2 group">
-      <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-medical flex items-center justify-center">
-        <Icon name="Heart" size={20} color="white" strokeWidth={2.5} />
-      </div>
+      <img src="/aidpod-logo.png" alt="AidPod Logo" className="w-8 h-8 object-contain" />
       <div className="flex flex-col">
         <span className="text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-200">
           AidPod

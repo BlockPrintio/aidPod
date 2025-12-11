@@ -6,7 +6,7 @@ const SocialSharing = ({ campaign }) => {
   const [copied, setCopied] = useState(false);
   const [shareCount, setShareCount] = useState(247);
 
-  const campaignUrl = `https://medchain.app/campaign/${campaign?.id}`;
+  const campaignUrl = `https://aidpod.app/campaign/${campaign?.id}`;
   const shareText = `Help ${campaign?.patientName} with ${campaign?.medicalCondition}. Every donation makes a difference! 🏥❤️`;
 
   const socialPlatforms = [

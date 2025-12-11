@@ -24,7 +24,7 @@ const DraftSaveIndicator = ({ formData, onSave, onLoad }) => {
     
     try {
       // Mock save to localStorage
-      localStorage.setItem('medchain_campaign_draft', JSON.stringify({
+      localStorage.setItem('aidpod_campaign_draft', JSON.stringify({
         ...formData,
         lastSaved: new Date()?.toISOString()
       }));
@@ -44,7 +44,7 @@ const DraftSaveIndicator = ({ formData, onSave, onLoad }) => {
 
   const handleLoadDraft = () => {
     try {
-      const savedDraft = localStorage.getItem('medchain_campaign_draft');
+      const savedDraft = localStorage.getItem('aidpod_campaign_draft');
       if (savedDraft) {
         const draftData = JSON.parse(savedDraft);
         onLoad(draftData);

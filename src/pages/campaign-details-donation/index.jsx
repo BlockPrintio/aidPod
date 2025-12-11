@@ -191,8 +191,8 @@ We still have a long way to go, but I'm feeling more hopeful each day. Thank you
   return (
     <div className="min-h-screen bg-background">
       <Helmet>
-        <title>{campaign?.title} - MedChain</title>
-        <meta name="description" content={`Help ${campaign?.patientName} with ${campaign?.medicalCondition}. Verified medical campaign on MedChain blockchain platform.`} />
+        <title>{campaign?.title} - Aidpod</title>
+        <meta name="description" content={`Help ${campaign?.patientName} with ${campaign?.medicalCondition}. Verified medical campaign on Aidpod blockchain platform.`} />
         <meta property="og:title" content={campaign?.title} />
         <meta property="og:description" content={`Help ${campaign?.patientName} with ${campaign?.medicalCondition}`} />
         <meta property="og:image" content={campaign?.heroImage} />

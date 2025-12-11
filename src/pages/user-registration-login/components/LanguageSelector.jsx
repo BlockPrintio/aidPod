@@ -14,13 +14,13 @@ const LanguageSelector = () => {
   ];
 
   useEffect(() => {
-    const savedLanguage = localStorage.getItem('medchain_language') || 'en';
+    const savedLanguage = localStorage.getItem('aidpod_language') || 'en';
     setCurrentLanguage(savedLanguage);
   }, []);
 
   const handleLanguageChange = (languageCode) => {
     setCurrentLanguage(languageCode);
-    localStorage.setItem('medchain_language', languageCode);
+    localStorage.setItem('aidpod_language', languageCode);
     setIsOpen(false);
   };
 

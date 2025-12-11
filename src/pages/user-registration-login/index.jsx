@@ -21,7 +21,7 @@ const UserRegistrationLogin = () => {
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Store user data in localStorage (mock authentication)
-      localStorage.setItem('medchain_user', JSON.stringify({
+      localStorage.setItem('aidpod_user', JSON.stringify({
         email: formData?.email,
         userType: formData?.userType,
         isAuthenticated: true,
@@ -58,7 +58,7 @@ const UserRegistrationLogin = () => {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Store user data in localStorage (mock registration)
-      localStorage.setItem('medchain_user', JSON.stringify({
+      localStorage.setItem('aidpod_user', JSON.stringify({
         email: formData?.email,
         firstName: formData?.firstName,
         lastName: formData?.lastName,
@@ -69,7 +69,7 @@ const UserRegistrationLogin = () => {
       }));
 
       const welcomeMessage = formData?.userType === 'hospital' ?'Account created! Your hospital credentials are being verified. You\'ll receive an email update within 2-3 business days.'
-        : `Welcome to MedChain, ${formData?.firstName}! Your account has been created successfully.`;
+        : `Welcome to Aidpod, ${formData?.firstName}! Your account has been created successfully.`;
       
       setSuccessMessage(welcomeMessage);
       
@@ -116,12 +116,10 @@ const UserRegistrationLogin = () => {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2 group">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-medical flex items-center justify-center">
-                <Icon name="Heart" size={20} color="white" strokeWidth={2.5} />
-              </div>
+              <img src="/aidpod-logo.png" alt="Aidpod Logo" className="w-8 h-8 object-contain" />
               <div className="flex flex-col">
                 <span className="text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-200">
-                  MedChain
+                  Aidpod
                 </span>
                 <span className="text-xs text-muted-foreground -mt-1">
                   Trusted Medical Funding
@@ -151,7 +149,7 @@ const UserRegistrationLogin = () => {
           <div className="bg-card border border-border rounded-medical shadow-medical-lg p-6">
             <div className="text-center mb-6">
               <h1 className="text-2xl font-bold text-card-foreground mb-2">
-                {activeTab === 'login' ? 'Welcome Back' : 'Join MedChain'}
+                {activeTab === 'login' ? 'Welcome Back' : 'Join Aidpod'}
               </h1>
               <p className="text-muted-foreground">
                 {activeTab === 'login' ?'Sign in to access your medical fundraising account' :'Create your account to start helping medical causes'
@@ -194,7 +192,7 @@ const UserRegistrationLogin = () => {
               </Link>
             </div>
             <p className="text-xs text-muted-foreground">
-              © {new Date()?.getFullYear()} MedChain. All rights reserved.
+              © {new Date()?.getFullYear()} Aidpod. All rights reserved.
             </p>
           </div>
         </div>
