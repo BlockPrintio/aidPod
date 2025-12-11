@@ -11,13 +11,6 @@ const UserTypeSelector = ({ selectedType, onTypeChange, error }) => {
       color: 'text-primary'
     },
     {
-      id: 'donor',
-      label: 'Donor',
-      description: 'Support medical campaigns',
-      icon: 'HandHeart',
-      color: 'text-secondary'
-    },
-    {
       id: 'hospital',
       label: 'Hospital Verifier',
       description: 'Verify medical campaigns',
@@ -31,7 +24,7 @@ const UserTypeSelector = ({ selectedType, onTypeChange, error }) => {
       <label className="block text-sm font-medium text-foreground">
         I am a <span className="text-error">*</span>
       </label>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {userTypes?.map((type) => (
           <button
             key={type?.id}

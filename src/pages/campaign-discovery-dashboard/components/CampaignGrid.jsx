@@ -104,7 +104,7 @@ const CampaignGrid = ({
 
   if (isLoading && campaigns?.length === 0) {
     return (
-      <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 ${className}`}>
+      <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 ${className}`}>
         {Array.from({ length: 6 })?.map((_, index) => (
           <SkeletonCard key={`skeleton-${index}`} />
         ))}
@@ -123,7 +123,7 @@ const CampaignGrid = ({
   return (
     <div className={className}>
       {/* Campaign Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
         {campaigns?.map((campaign) => (
           <CampaignCard
             key={campaign?.id}

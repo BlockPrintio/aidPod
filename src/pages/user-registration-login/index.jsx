@@ -134,7 +134,7 @@ const UserRegistrationLogin = () => {
       </header>
       {/* Main Content */}
       <main className="flex-1 py-8 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md mx-auto">
+        <div className="max-w-xl mx-auto">
           {/* Success Message */}
           {successMessage && (
             <div className="mb-6 p-4 bg-success/10 border border-success/20 rounded-medical">

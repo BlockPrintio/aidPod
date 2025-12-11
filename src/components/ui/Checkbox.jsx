@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, Minus } from "lucide-react";
+import AppIcon from "../AppIcon";
 import { cn } from "../../utils/cn";
 
 const Checkbox = React.forwardRef(({
@@ -51,10 +51,10 @@ const Checkbox = React.forwardRef(({
                     )}
                 >
                     {checked && !indeterminate && (
-                        <Check className="h-3 w-3 text-current flex items-center justify-center" />
+                        <AppIcon name="Check" className="h-3 w-3 text-current flex items-center justify-center" />
                     )}
                     {indeterminate && (
-                        <Minus className="h-3 w-3 text-current flex items-center justify-center" />
+                        <AppIcon name="Minus" className="h-3 w-3 text-current flex items-center justify-center" />
                     )}
                 </label>
             </div>
