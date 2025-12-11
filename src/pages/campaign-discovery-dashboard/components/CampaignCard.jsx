@@ -94,14 +94,14 @@ const CampaignCard = ({ campaign, onQuickDonate }) => {
         </div>
       </div>
       {/* Campaign Content */}
-      <div className="p-4 space-y-3">
+      <div className="p-6 space-y-4">
         {/* Patient Info */}
-        <div className="space-y-1">
-          <h3 className="font-semibold text-card-foreground text-lg leading-tight line-clamp-2">
+        <div className="space-y-2">
+          <h3 className="font-semibold text-card-foreground text-xl leading-snug line-clamp-2">
             {campaign?.title}
           </h3>
           <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-            <Icon name="User" size={14} />
+            <Icon name="User" size={16} />
             <span>{campaign?.patientName}</span>
             <span>•</span>
             <span>{campaign?.age} years old</span>
@@ -109,56 +109,58 @@ const CampaignCard = ({ campaign, onQuickDonate }) => {
         </div>
 
         {/* Medical Condition */}
-        <div className="flex items-center space-x-2">
-          <Icon name="Stethoscope" size={14} className="text-primary" />
+        <div className="flex items-center space-x-2 py-1">
+          <Icon name="Stethoscope" size={16} className="text-primary" />
           <span className="text-sm font-medium text-primary">{campaign?.medicalCondition}</span>
         </div>
 
         {/* Story Preview */}
-        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+        <p className="text-muted-foreground line-clamp-2 leading-relaxed">
           {campaign?.storyPreview}
         </p>
 
         {/* Progress Indicator */}
-        <CampaignProgressIndicator
-          currentAmount={campaign?.currentAmount}
-          targetAmount={campaign?.targetAmount}
-          donorCount={campaign?.donorCount}
-          daysRemaining={campaign?.daysRemaining}
-          isLive={campaign?.status === 'active'}
-          size="sm"
-          showDetails={false}
-        />
+        <div className="py-1">
+          <CampaignProgressIndicator
+            currentAmount={campaign?.currentAmount}
+            targetAmount={campaign?.targetAmount}
+            donorCount={campaign?.donorCount}
+            daysRemaining={campaign?.daysRemaining}
+            isLive={campaign?.status === 'active'}
+            size="md"
+            showDetails={false}
+          />
+        </div>
 
         {/* Campaign Stats */}
-        <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border">
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-1">
-              <Icon name="MapPin" size={12} />
+        <div className="flex items-center justify-between text-sm text-muted-foreground pt-4 border-t border-border">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-1.5">
+              <Icon name="MapPin" size={14} />
               <span>{campaign?.location}</span>
             </div>
-            <div className="flex items-center space-x-1">
-              <Icon name="Clock" size={12} />
+            <div className="flex items-center space-x-1.5">
+              <Icon name="Clock" size={14} />
               <span>{formatTimeRemaining(campaign?.daysRemaining)}</span>
             </div>
           </div>
-          <div className="flex items-center space-x-1">
-            <Icon name="Calendar" size={12} />
-            <span>Created {new Date(campaign.createdAt)?.toLocaleDateString()}</span>
+          <div className="flex items-center space-x-1.5">
+            <Icon name="Calendar" size={14} />
+            <span>{new Date(campaign.createdAt)?.toLocaleDateString()}</span>
           </div>
         </div>
       </div>
       {/* Action Footer */}
-      <div className="px-4 pb-4">
-        <div className="flex space-x-2">
+      <div className="px-6 pb-6 pt-2">
+        <div className="flex space-x-3">
           <Link to={`/campaign-details-donation?id=${campaign?.id}`} className="flex-1">
-            <Button variant="outline" size="sm" fullWidth iconName="ArrowRight" iconPosition="right">
+            <Button variant="outline" size="default" fullWidth iconName="ArrowRight" iconPosition="right">
               Learn More
             </Button>
           </Link>
           <Button
             variant="default"
-            size="sm"
+            size="default"
             iconName="Heart"
             iconPosition="left"
             onClick={() => onQuickDonate(campaign)}
