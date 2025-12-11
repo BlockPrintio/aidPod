@@ -485,7 +485,7 @@ const HospitalVerificationDashboard = () => {
                       onReview={handleReviewRequest}
                       onQuickApprove={handleQuickApprove}
                       onQuickReject={handleQuickReject}
-                      className="ml-8"
+                      className="ml-12"
                     />
                   </div>
                 ))}
