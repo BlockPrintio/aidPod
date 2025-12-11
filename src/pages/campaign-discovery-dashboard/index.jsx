@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import Header from '../../components/ui/Header';
 import WalletConnectionIndicator from '../../components/ui/WalletConnectionIndicator';
-import { useWallet } from '../../hooks/useWallet.jsx';
+import { useWallet } from '../../hooks/useWallet';
 import { campaignService } from '../../lib/services/campaign-service';
 
 // Import page components

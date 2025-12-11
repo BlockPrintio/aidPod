@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../../components/ui/Header';
 import Button from '../../components/ui/Button';
 import Icon from '../../components/AppIcon';
-import { useWallet } from '../../hooks/useWallet.jsx';
+import { useWallet } from '../../hooks/useWallet';
 import { useCampaignTransactions } from '../../hooks/useCampaignTransactions';
 import StepIndicator from './components/StepIndicator';
 import BasicInformationStep from './components/BasicInformationStep';
