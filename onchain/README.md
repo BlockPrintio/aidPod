@@ -4,6 +4,7 @@
    - Creates a campaign with medical documentation
    - Selects their treating hospital for verification
    - Sets funding goals and milestone requirements
+   
 
 2. **Hospital Verification**
    - Hospital reviews medical documentation
