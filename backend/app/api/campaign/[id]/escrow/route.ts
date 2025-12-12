@@ -1,27 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-);
-
-// Helper function to extract wallet address from request headers
-function getWalletAddress(request: NextRequest): string | null {
-  return request.headers.get('x-wallet-address');
-}
-
-// Helper function to validate wallet authentication
-function validateWalletAuth(request: NextRequest): { isValid: boolean; walletAddress?: string } {
-  const walletAddress = getWalletAddress(request);
-  
-  if (!walletAddress) {
-    return { isValid: false };
-  }
-
-  return { isValid: true, walletAddress };
-}
+import { prisma } from '../../../../../lib/prisma';
+import { requireAuth } from '../../../../../lib/middlewares/auth';
+import { apiRateLimiter } from '../../../../../lib/middlewares/rate-limit';
+import { handleError, AppError } from '../../../../../lib/errors/handler';
+import { logger } from '../../../../../lib/logger';
 
 // POST /api/campaign/[id]/escrow - Set or update campaign escrow address
 export async function POST(
@@ -29,47 +11,39 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Validate wallet authentication
-    const auth = validateWalletAuth(request);
-    if (!auth.isValid) {
-      return NextResponse.json(
-        { error: 'Wallet address is required in headers' },
-        { status: 401 }
-      );
-    }
+    // Rate limiting
+    const rateLimitResponse = apiRateLimiter(request);
+    if (rateLimitResponse) return rateLimitResponse;
+
+    // Authentication
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
 
     const { id } = params;
     const { escrow_address } = await request.json();
 
     if (!escrow_address) {
-      return NextResponse.json(
-        { error: 'Escrow address is required' },
-        { status: 400 }
-      );
+      throw new AppError('Escrow address is required', 400);
     }
 
-    // Update campaign with escrow address in Supabase
-    const { data, error } = await supabase
-      .from('campaigns')
-      .update({ escrow_address })
-      .eq('id', id)
-      .select()
-      .single();
+    // Update campaign with escrow address
+    const campaign = await prisma.campaign.update({
+      where: { id: parseInt(id) },
+      data: { escrowAddress: escrow_address },
+      include: {
+        patient: true,
+        hospital: true,
+      },
+    });
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
+    logger.info(`Escrow address set for campaign ${campaign.id}: ${escrow_address}`);
 
     return NextResponse.json({
       message: 'Escrow address updated successfully',
-      campaign: data
+      campaign,
     });
   } catch (error) {
-    console.error('Escrow address update error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
+    return handleError(error);
   }
 }
 
@@ -81,28 +55,27 @@ export async function GET(
   try {
     const { id } = params;
 
-    const { data, error } = await supabase
-      .from('campaigns')
-      .select('id, title, escrow_address')
-      .eq('id', id)
-      .single();
+    const campaign = await prisma.campaign.findUnique({
+      where: { id: parseInt(id) },
+      select: {
+        id: true,
+        title: true,
+        escrowAddress: true,
+      },
+    });
 
-    if (error) {
-      return NextResponse.json({ error: 'Campaign not found' }, { status: 404 });
+    if (!campaign) {
+      throw new AppError('Campaign not found', 404);
     }
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       campaign: {
-        id: data.id,
-        title: data.title,
-        escrow_address: data.escrow_address
+        id: campaign.id,
+        title: campaign.title,
+        escrow_address: campaign.escrowAddress,
       }
     });
   } catch (error) {
-    console.error('Get escrow address error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
+    return handleError(error);
   }
 }
