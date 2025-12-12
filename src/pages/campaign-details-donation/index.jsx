@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import Header from '../../components/ui/Header';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
+import Image from '../../components/AppImage';
 import CampaignHero from './components/CampaignHero';
 import CampaignTabs from './components/CampaignTabs';
 import DonationInterface from './components/DonationInterface';
@@ -12,7 +13,8 @@ import DonorComments from './components/DonorComments';
 import SocialSharing from './components/SocialSharing';
 
 const CampaignDetailsAndDonation = () => {
-  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get('id');
   const navigate = useNavigate();
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,89 +22,164 @@ const CampaignDetailsAndDonation = () => {
   const [userRole] = useState('donor');
   const [isAuthenticated] = useState(true);
 
-  // Mock campaign data
-  const mockCampaign = {
-    id: "camp_001",
-    title: "Emergency Heart Surgery for Maria Santos",
-    patientName: "Maria Santos",
-    patientAge: 34,
-    medicalCondition: "Congenital Heart Disease",
-    treatmentType: "Heart Valve Replacement Surgery",
-    hospitalName: "St. Mary\'s Medical Center",
-    location: "Phoenix, Arizona",
-    heroImage: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=800",
-    currentAmount: 45750,
-    targetAmount: 85000,
-    donorCount: 127,
-    daysRemaining: 23,
-    createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
-    verificationStatus: "verified",
-    verifierName: "Dr. Jennifer Martinez, MD",
-    verificationDate: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000),
-    story: `My name is Maria Santos, and I am a 34-year-old mother of two beautiful children, ages 8 and 12. Three months ago, my world turned upside down when I was diagnosed with a severe congenital heart defect that requires immediate surgical intervention.
+  // Mock campaigns data (localized for Nigeria)
+  const mockCampaigns = {
+    // Default campaign (Aisha)
+    "default": {
+      id: "camp_001",
+      title: "Emergency Heart Surgery for Aisha Bello",
+      patientName: "Aisha Bello",
+      patientAge: 34,
+      medicalCondition: "Congenital Heart Disease",
+      treatmentType: "Heart Valve Replacement Surgery",
+      hospitalName: "Lagos University Teaching Hospital",
+      location: "Lagos, Nigeria",
+      heroImage: "https://images.unsplash.com/photo-1586772007346-2b4b6bfa02b0?w=800",
+      currentAmount: 45750,
+      targetAmount: 85000,
+      donorCount: 127,
+      daysRemaining: 23,
+      createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
+      verificationStatus: "verified",
+      verifierName: "Dr. Chioma Adebayo, MD",
+      verificationDate: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000),
+      story: `My name is Aisha Bello, and I am a 34-year-old mother of two beautiful children, ages 8 and 12. Three months ago, my world turned upside down when I was diagnosed with a severe congenital heart defect that requires immediate surgical intervention.
 
-The doctors at St. Mary's Medical Center have informed me that I need a heart valve replacement surgery within the next month to prevent further complications. Without this surgery, my condition will continue to deteriorate, and I may not be able to see my children grow up.
+    The doctors at Lagos University Teaching Hospital have informed me that I need a heart valve replacement surgery within the next month to prevent further complications. Without this surgery, my condition will continue to deteriorate, and I may not be able to see my children grow up.
 
-As a single mother working two part-time jobs, I have been struggling to make ends meet even before this diagnosis. The estimated cost of the surgery, including pre-operative care, the procedure itself, and post-operative recovery, is $85,000. My insurance will only cover a portion of these expenses, leaving me with an overwhelming financial burden.
+    As a single mother working two part-time jobs, I have been struggling to make ends meet even before this diagnosis. The estimated cost of the surgery, including pre-operative care, the procedure itself, and post-operative recovery, is ₦85,000. My insurance will only cover a portion of these expenses, leaving me with an overwhelming financial burden.
 
-I have exhausted all my savings and have reached out to family and friends, but the amount needed is beyond what we can manage alone. This is why I am humbly asking for your help and support during this incredibly difficult time.
+    I have exhausted all my savings and have reached out to family and friends, but the amount needed is beyond what we can manage alone. This is why I am humbly asking for your help and support during this incredibly difficult time.
 
-Every donation, no matter how small, brings me one step closer to getting the life-saving surgery I desperately need. Your generosity will not only help save my life but will also ensure that my children don't lose their mother.
+    Every donation, no matter how small, brings me one step closer to getting the life-saving surgery I desperately need. Your generosity will not only help save my life but will also ensure that my children don't lose their mother.
 
-I promise to keep everyone updated on my progress and recovery. Thank you from the bottom of my heart for taking the time to read my story and for any support you can provide.`,
-    medicalTags: ["Heart Surgery", "Emergency", "Single Mother", "Verified Medical"],
-    updates: [
-      {
-        title: "Pre-Surgery Consultation Completed",
-        content: `Just finished my comprehensive pre-surgery consultation with Dr. Martinez and her team. All the preliminary tests have been completed, including blood work, EKG, and cardiac catheterization.
+    I promise to keep everyone updated on my progress and recovery. Thank you from the bottom of my heart for taking the time to read my story and for any support you can provide.`,
+      medicalTags: ["Heart Surgery", "Emergency", "Single Mother", "Verified Medical"],
+      updates: [
+        {
+          title: "Pre-Surgery Consultation Completed",
+          content: `Just finished my comprehensive pre-surgery consultation with Dr. Adebayo and her team. All the preliminary tests have been completed, including blood work, EKG, and cardiac catheterization.
 
-The good news is that I'm a good candidate for the valve replacement surgery. The surgical team is confident about the procedure and expects a full recovery within 6-8 weeks post-surgery.
+  The good news is that I'm a good candidate for the valve replacement surgery. The surgical team is confident about the procedure and expects a full recovery within 6-8 weeks post-surgery.
 
-Surgery has been scheduled for December 15th, 2024. I'm feeling nervous but hopeful, especially with all the support from this amazing community. Thank you to everyone who has donated so far - we're at 54% of our goal!I'll continue to update everyone as we get closer to the surgery date.`,
-        date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-        images: [
-          "https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=400",
-          "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=400"
-        ]
-      },
-      {
-        title: "Reached 25% Funding Milestone!",
-        content: `I can't believe we've already reached 25% of our funding goal! When I first created this campaign, I wasn't sure if anyone would help, but the response has been overwhelming.
+  Surgery has been scheduled for December 15th, 2024. I'm feeling nervous but hopeful, especially with all the support from this amazing community. Thank you to everyone who has donated so far - we're at 54% of our goal!I'll continue to update everyone as we get closer to the surgery date.`,
+          date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+          images: [
+            "https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=400",
+            "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=400"
+          ]
+        },
+        {
+          title: "Reached 25% Funding Milestone!",
+          content: `I can't believe we've already reached 25% of our funding goal! When I first created this campaign, I wasn't sure if anyone would help, but the response has been overwhelming.
 
-Special thanks to all the anonymous donors and to Sarah Johnson, Michael Chen, and Emma Rodriguez for their generous contributions and kind words. Reading your messages of support brings tears to my eyes and gives me strength to keep fighting.
+      Special thanks to all the anonymous donors and to Ngozi Okafor, Emeka Nnamdi, and Zainab Abubakar for their generous contributions and kind words. Reading your messages of support brings tears to my eyes and gives me strength to keep fighting.
 
-My children are also amazed by the kindness of strangers. My 12-year-old daughter asked if she could write thank you cards to everyone who donated. It's beautiful to see how this experience is teaching them about compassion and community.
+  My children are also amazed by the kindness of strangers. My 12-year-old daughter asked if she could write thank you cards to everyone who donated. It's beautiful to see how this experience is teaching them about compassion and community.
 
-We still have a long way to go, but I'm feeling more hopeful each day. Thank you for believing in me and my recovery.`,
-        date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000)
-      }
-    ],
-    documents: [
-      {
-        name: "Medical Diagnosis Report",
-        type: "PDF Document",
-        url: "https://example.com/medical-report.pdf",
-        uploadDate: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000)
-      },
-      {
-        name: "Cardiac Catheterization Results",
-        type: "Medical Image",
-        url: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=600",
-        uploadDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-      },
-      {
-        name: "Surgery Cost Estimate",
-        type: "PDF Document", 
-        url: "https://example.com/cost-estimate.pdf",
-        uploadDate: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000)
-      },
-      {
-        name: "Insurance Coverage Letter",
-        type: "PDF Document",
-        url: "https://example.com/insurance-letter.pdf",
-        uploadDate: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000)
-      }
-    ]
+  We still have a long way to go, but I'm feeling more hopeful each day. Thank you for believing in me and my recovery.`,
+          date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000)
+        }
+      ],
+      documents: [
+        {
+          name: "Medical Diagnosis Report",
+          type: "PDF Document",
+          url: "https://example.com/medical-report.pdf",
+          uploadDate: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000)
+        },
+        {
+          name: "Cardiac Catheterization Results",
+          type: "Medical Image",
+          url: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=600",
+          uploadDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+        },
+        {
+          name: "Surgery Cost Estimate",
+          type: "PDF Document",
+          url: "https://example.com/cost-estimate.pdf",
+          uploadDate: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000)
+        },
+        {
+          name: "Insurance Coverage Letter",
+          type: "PDF Document",
+          url: "https://example.com/insurance-letter.pdf",
+          uploadDate: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000)
+        }
+      ]
+    },
+    // Chidi's Campaign
+    "1": {
+      id: "1",
+      title: "Kidney Transplant for Chidi",
+      patientName: "Chidi Okonkwo",
+      patientAge: 45,
+      medicalCondition: "End-Stage Renal Disease",
+      treatmentType: "Kidney Transplant",
+      hospitalName: "Nizamiye Hospital Abuja",
+      location: "Abuja, Nigeria",
+      heroImage: "https://images.unsplash.com/photo-1579684385136-137af75461bb?w=800",
+      currentAmount: 32000,
+      targetAmount: 60000,
+      donorCount: 89,
+      daysRemaining: 15,
+      createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      verificationStatus: "verified",
+      verifierName: "Dr. Ibrahim Musa",
+      verificationDate: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000),
+      story: `Chidi has been battling kidney failure for the past 3 years, relying on dialysis three times a week. His condition has now progressed to end-stage renal disease, and a transplant is his only chance for survival. We have found a matching donor, but the cost of the surgery and post-operative immunosuppressant drugs is overwhelming.`,
+      medicalTags: ["Kidney Transplant", "Urgent", "Verified Medical"],
+      updates: [],
+      documents: []
+    },
+    // Amina's Campaign
+    "2": {
+      id: "2",
+      title: "Spinal Surgery for Amina",
+      patientName: "Amina Yusuf",
+      patientAge: 28,
+      medicalCondition: "Spinal Cord Injury",
+      treatmentType: "Spinal Decompression & Fusion",
+      hospitalName: "National Orthopaedic Hospital Dala",
+      location: "Kano, Nigeria",
+      heroImage: "https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=800",
+      currentAmount: 45000,
+      targetAmount: 55000,
+      donorCount: 210,
+      daysRemaining: 10,
+      createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
+      verificationStatus: "verified",
+      verifierName: "Dr. Fatima Aliyu",
+      verificationDate: new Date(Date.now() - 55 * 24 * 60 * 60 * 1000),
+      story: `Amina was involved in a severe car accident two months ago that left her with a compressed spinal cord. She has lost sensation in her legs, but doctors are optimistic that immediate surgery can restore her mobility. She is a young teacher with a bright future ahead of her.`,
+      medicalTags: ["Spinal Surgery", "Accident Recovery", "Verified Medical"],
+      updates: [],
+      documents: []
+    },
+    // Tunde's Campaign
+    "3": {
+      id: "3",
+      title: "Chemotherapy for Tunde",
+      patientName: "Tunde Bakare",
+      patientAge: 52,
+      medicalCondition: "Non-Hodgkin Lymphoma",
+      treatmentType: "Chemotherapy & Immunotherapy",
+      hospitalName: "Lagos University Teaching Hospital",
+      location: "Lagos, Nigeria",
+      heroImage: "https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?w=800",
+      currentAmount: 28000,
+      targetAmount: 40000,
+      donorCount: 65,
+      daysRemaining: 45,
+      createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+      verificationStatus: "verified",
+      verifierName: "Dr. Kemi Johnson",
+      verificationDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+      story: `Tunde was diagnosed with aggressive Non-Hodgkin Lymphoma last month. His treatment plan involves 6 cycles of chemotherapy combined with immunotherapy. As the breadwinner of his family, his illness has put a significant financial strain on his household.`,
+      medicalTags: ["Cancer Treatment", "Chemotherapy", "Verified Medical"],
+      updates: [],
+      documents: []
+    }
   };
 
   useEffect(() => {
@@ -110,8 +187,13 @@ We still have a long way to go, but I'm feeling more hopeful each day. Thank you
     const loadCampaign = async () => {
       setLoading(true);
       // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setCampaign(mockCampaign);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Get campaign by ID or default to Aisha's campaign if ID not found or empty
+      const campaignId = id || "default";
+      const selectedCampaign = mockCampaigns[campaignId] || mockCampaigns["default"];
+      
+      setCampaign(selectedCampaign);
       setLoading(false);
     };
 
@@ -122,10 +204,10 @@ We still have a long way to go, but I'm feeling more hopeful each day. Thank you
     try {
       // Simulate donation processing
       console.log('Processing donation:', donationData);
-      
+
       // Show success state
       setDonationSuccess(true);
-      
+
       // Update campaign data
       setCampaign(prev => ({
         ...prev,
@@ -149,7 +231,7 @@ We still have a long way to go, but I'm feeling more hopeful each day. Thank you
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Header 
+        <Header
           userRole={userRole}
           isAuthenticated={isAuthenticated}
           walletConnected={true}
@@ -168,7 +250,7 @@ We still have a long way to go, but I'm feeling more hopeful each day. Thank you
   if (!campaign) {
     return (
       <div className="min-h-screen bg-background">
-        <Header 
+        <Header
           userRole={userRole}
           isAuthenticated={isAuthenticated}
           walletConnected={true}
@@ -198,7 +280,7 @@ We still have a long way to go, but I'm feeling more hopeful each day. Thank you
         <meta property="og:image" content={campaign?.heroImage} />
         <meta property="og:type" content="website" />
       </Helmet>
-      <Header 
+      <Header
         userRole={userRole}
         isAuthenticated={isAuthenticated}
         walletConnected={true}
@@ -220,12 +302,14 @@ We still have a long way to go, but I'm feeling more hopeful each day. Thank you
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
         <nav className="flex items-center space-x-2 text-sm text-muted-foreground mb-6">
-          <button 
+          <Button
+            variant="link"
+            size="sm"
             onClick={handleGoBack}
-            className="hover:text-primary transition-colors duration-200"
+            className="p-0 h-auto font-normal text-muted-foreground hover:text-primary hover:no-underline"
           >
             Campaigns
-          </button>
+          </Button>
           <Icon name="ChevronRight" size={16} />
           <span className="text-foreground">{campaign?.title}</span>
         </nav>
@@ -267,22 +351,52 @@ We still have a long way to go, but I'm feeling more hopeful each day. Thank you
         <div className="mt-12 pt-8 border-t border-border">
           <h3 className="text-xl font-bold text-foreground mb-6">Other Medical Campaigns</h3>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3]?.map((index) => (
-              <div key={index} className="bg-card border border-border rounded-medical p-6 hover:shadow-medical-md transition-shadow duration-200">
-                <div className="w-full h-32 bg-muted rounded-medical mb-4"></div>
+            {[
+              {
+                id: 1,
+                title: "Kidney Transplant for Chidi",
+                description: "Chidi needs a kidney transplant to survive end-stage renal failure. Your support can give him a second chance at life.",
+                amountRaised: 32000,
+                image: "https://images.unsplash.com/photo-1579684385136-137af75461bb?w=500"
+              },
+              {
+                id: 2,
+                title: "Spinal Surgery for Amina",
+                description: "Amina was involved in a severe accident and requires spinal surgery to regain mobility. Help her walk again.",
+                amountRaised: 45000,
+                image: "https://images.unsplash.com/photo-1551601651-2a8555f1a136?w=500"
+              },
+              {
+                id: 3,
+                title: "Chemotherapy for Tunde",
+                description: "Tunde is battling aggressive lymphoma. Funds are needed for his chemotherapy and supportive care.",
+                amountRaised: 28000,
+                image: "https://images.unsplash.com/photo-1532938911079-1b06ac7ceec7?w=500"
+              }
+            ].map((related) => (
+              <div key={related.id} className="bg-card border border-border rounded-medical p-6 hover:shadow-medical-md transition-shadow duration-200">
+                <div className="w-full h-32 mb-4 overflow-hidden rounded-medical">
+                  <Image
+                    src={related.image}
+                    alt={related.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
                 <h4 className="font-semibold text-foreground mb-2">
-                  Emergency Surgery for Patient {index}
+                  {related.title}
                 </h4>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Help with critical medical treatment...
+                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                  {related.description}
                 </p>
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-primary">
-                    {(25000 + index * 5000)?.toLocaleString()} ADA raised
+                    {related.amountRaised?.toLocaleString()} ADA raised
                   </span>
-                  <Button variant="outline" size="sm">
-                    View Campaign
-                  </Button>
+                  <Link to={`/campaign-details-donation?id=${related.id}`}>
+                    <Button variant="outline" size="sm">
+                      View Campaign
+                    </Button>
+                  </Link>
                 </div>
               </div>
             ))}

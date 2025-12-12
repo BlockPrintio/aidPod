@@ -69,7 +69,7 @@ const VerificationRequestCard = ({
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <div className={`px-2 py-1 rounded-medical text-xs font-medium border ${getUrgencyColor(request?.urgency)}`}>
               {request?.urgency?.toUpperCase()}
@@ -89,7 +89,7 @@ const VerificationRequestCard = ({
               ≈ ₦{(request?.targetAmount * 750)?.toLocaleString()}
             </div>
           </div>
-          
+
           <div className="bg-muted/30 p-3 rounded-medical">
             <div className="text-xs text-muted-foreground mb-1">Documents</div>
             <div className="flex items-center space-x-2">
@@ -100,7 +100,7 @@ const VerificationRequestCard = ({
               <span className="text-xs text-muted-foreground">files</span>
             </div>
           </div>
-          
+
           <div className="bg-muted/30 p-3 rounded-medical">
             <div className="text-xs text-muted-foreground mb-1">Submitted</div>
             <div className="text-sm font-medium text-card-foreground">
@@ -114,20 +114,21 @@ const VerificationRequestCard = ({
 
         {/* Medical Summary */}
         <div className="mb-4">
-          <button
+          <Button
+            variant="ghost"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center space-x-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors duration-200"
+            className="p-0 h-auto hover:bg-transparent hover:text-primary/80 font-medium text-primary"
           >
-            <Icon name={isExpanded ? "ChevronUp" : "ChevronDown"} size={16} />
-            <span>Medical Summary</span>
-          </button>
-          
+            <Icon name={isExpanded ? "ChevronUp" : "ChevronDown"} size={16} className="mr-2" />
+            Medical Summary
+          </Button>
+
           {isExpanded && (
             <div className="mt-3 p-4 bg-muted/20 rounded-medical">
               <p className="text-sm text-card-foreground leading-relaxed">
                 {request?.medicalSummary}
               </p>
-              
+
               {request?.treatmentPlan && (
                 <div className="mt-3">
                   <div className="text-xs font-medium text-muted-foreground mb-2">Treatment Plan</div>
@@ -162,7 +163,7 @@ const VerificationRequestCard = ({
             <Icon name="Clock" size={14} />
             <span>Priority: {request?.priority}</span>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"

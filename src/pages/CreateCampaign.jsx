@@ -24,15 +24,16 @@ export default function CreateCampaign() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <button
+              <Button
+                variant="ghost"
                 onClick={() => navigate('/')}
-                className="flex items-center space-x-2 text-gray-600 hover:text-primary transition-colors"
+                className="text-gray-600 hover:text-primary hover:bg-transparent p-0 h-auto font-normal"
               >
-                <Icon name="ArrowLeft" size={20} />
-                <span>Back to Dashboard</span>
-              </button>
+                <Icon name="ArrowLeft" size={20} className="mr-2" />
+                Back to Dashboard
+              </Button>
             </div>
-            
+
             <WalletConnector onWalletChange={handleWalletChange} />
           </div>
         </div>
@@ -50,7 +51,7 @@ export default function CreateCampaign() {
             Create Medical Campaign
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Launch a verified medical crowdfunding campaign on the Cardano blockchain. 
+            Launch a verified medical crowdfunding campaign on the Cardano blockchain.
             Get the support you need for medical treatments with transparency and security.
           </p>
         </motion.div>
@@ -107,7 +108,7 @@ export default function CreateCampaign() {
               <h4 className="text-lg font-semibold text-blue-900">Secure & Transparent</h4>
             </div>
             <p className="text-blue-800 text-sm">
-              All funds are secured by smart contracts on Cardano blockchain. 
+              All funds are secured by smart contracts on Cardano blockchain.
               Every transaction is transparent and verifiable.
             </p>
           </div>
@@ -118,7 +119,7 @@ export default function CreateCampaign() {
               <h4 className="text-lg font-semibold text-green-900">Medical Verification</h4>
             </div>
             <p className="text-green-800 text-sm">
-              Campaigns are verified by medical authorities to ensure legitimacy 
+              Campaigns are verified by medical authorities to ensure legitimacy
               and proper use of funds.
             </p>
           </div>
@@ -129,7 +130,7 @@ export default function CreateCampaign() {
               <h4 className="text-lg font-semibold text-purple-900">Milestone-Based</h4>
             </div>
             <p className="text-purple-800 text-sm">
-              Funds are released in milestones (25%, 50%, 75%, 100%) based on 
+              Funds are released in milestones (25%, 50%, 75%, 100%) based on
               treatment progress and verification.
             </p>
           </div>
@@ -140,7 +141,7 @@ export default function CreateCampaign() {
               <h4 className="text-lg font-semibold text-yellow-900">Refund Protection</h4>
             </div>
             <p className="text-yellow-800 text-sm">
-              Automatic refunds are available if campaigns are cancelled or 
+              Automatic refunds are available if campaigns are cancelled or
               don't reach their goals within the deadline.
             </p>
           </div>

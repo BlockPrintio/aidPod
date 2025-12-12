@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Icon from '../../../components/AppIcon';
 import Image from '../../../components/AppImage';
+import { cn } from '../../../utils/cn';
 
 const CampaignTabs = ({ campaign }) => {
   const [activeTab, setActiveTab] = useState('story');
@@ -228,19 +229,22 @@ const CampaignTabs = ({ campaign }) => {
             <button
               key={tab?.id}
               onClick={() => setActiveTab(tab?.id)}
-              className={`flex items-center space-x-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors duration-200 whitespace-nowrap ${
+              className={cn(
+                "flex items-center space-x-2 px-6 py-4 text-sm font-medium border-b-2 transition-all duration-200 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                 activeTab === tab?.id
-                  ? 'border-primary text-primary bg-primary/5' :'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50'
-              }`}
+                  ? 'border-primary text-primary bg-primary/5'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/50'
+              )}
             >
               <Icon name={tab?.icon} size={16} />
               <span>{tab?.label}</span>
               {tab?.count !== null && (
-                <span className={`px-2 py-0.5 text-xs rounded-full ${
+                <span className={cn(
+                  "px-2 py-0.5 text-xs rounded-full transition-colors",
                   activeTab === tab?.id
                     ? 'bg-primary text-primary-foreground'
                     : 'bg-muted text-muted-foreground'
-                }`}>
+                )}>
                   {tab?.count}
                 </span>
               )}

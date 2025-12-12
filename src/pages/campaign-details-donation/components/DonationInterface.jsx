@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
-import Select from '../../../components/ui/Select';
 
 const DonationInterface = ({ campaign, onDonate }) => {
   const [donationAmount, setDonationAmount] = useState('');
@@ -15,7 +14,7 @@ const DonationInterface = ({ campaign, onDonate }) => {
   const [isAnonymous, setIsAnonymous] = useState(false);
 
   const presetAmounts = [50, 100, 250, 500, 1000, 2500];
-  const usdRate = 0.35;
+  const ngnRate = 1600; // approximate NGN per ADA (placeholder)
 
   const walletOptions = [
     { value: 'nami', label: 'Nami Wallet', description: 'Most popular Cardano wallet' },
@@ -33,7 +32,7 @@ const DonationInterface = ({ campaign, onDonate }) => {
 
   const handleWalletConnect = async () => {
     if (!selectedWallet) return;
-    
+
     setIsConnecting(true);
     // Simulate wallet connection
     setTimeout(() => {
@@ -44,7 +43,7 @@ const DonationInterface = ({ campaign, onDonate }) => {
 
   const handleDonate = async () => {
     if (!donationAmount || !isConnected) return;
-    
+
     const donationData = {
       amount: parseFloat(donationAmount),
       message: donationMessage,
@@ -52,12 +51,18 @@ const DonationInterface = ({ campaign, onDonate }) => {
       wallet: selectedWallet,
       campaignId: campaign?.id
     };
-    
+
     onDonate(donationData);
   };
 
-  const formatUSD = (adaAmount) => {
-    return (adaAmount * usdRate)?.toFixed(2);
+  const formatNGN = (adaAmount) => {
+    const ngn = adaAmount * ngnRate;
+    return new Intl.NumberFormat('en-NG', {
+      style: 'currency',
+      currency: 'NGN',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(ngn);
   };
 
   const isValidAmount = () => {
@@ -79,16 +84,31 @@ const DonationInterface = ({ campaign, onDonate }) => {
         {/* Wallet Connection */}
         {!isConnected ? (
           <div className="space-y-4">
-            <Select
-              label="Choose Wallet"
-              placeholder="Select your Cardano wallet"
-              options={walletOptions}
-              value={selectedWallet}
-              onChange={setSelectedWallet}
-              searchable
-            />
+            <div>
+              <label className="text-sm font-medium text-foreground mb-3 block">
+                Choose Wallet
+              </label>
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                {walletOptions.map((wallet) => (
+                  <button
+                    key={wallet.value}
+                    onClick={() => setSelectedWallet(wallet.value)}
+                    className={`flex flex-col items-center justify-center p-4 border rounded-medical transition-all duration-200 ${selectedWallet === wallet.value
+                      ? 'border-primary bg-primary/5 text-primary shadow-sm'
+                      : 'border-border hover:border-primary/50 text-muted-foreground hover:text-foreground'
+                      }`}
+                  >
+                    <div className="w-10 h-10 mb-2 rounded-full bg-muted flex items-center justify-center">
+                      <Icon name="Wallet" size={20} className={selectedWallet === wallet.value ? 'text-primary' : 'text-muted-foreground'} />
+                    </div>
+                    <span className="text-sm font-medium">{wallet.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <Button
-              variant="primary"
+              variant="default"
               fullWidth
               loading={isConnecting}
               disabled={!selectedWallet}
@@ -122,24 +142,24 @@ const DonationInterface = ({ campaign, onDonate }) => {
               </label>
               <div className="grid grid-cols-2 gap-2 mb-4">
                 {presetAmounts?.map((amount) => (
-                  <button
+                  <Button
                     key={amount}
+                    variant={donationAmount === amount?.toString() ? "default" : "outline"}
                     onClick={() => {
                       setDonationAmount(amount?.toString());
                       setShowCustomAmount(false);
                     }}
-                    className={`p-3 text-center border rounded-medical transition-all duration-200 ${
-                      donationAmount === amount?.toString()
-                        ? 'border-primary bg-primary text-primary-foreground'
-                        : 'border-border hover:border-primary hover:bg-primary/5'
-                    }`}
+                    className={`h-auto py-3 flex-col space-y-1 ${donationAmount !== amount?.toString()
+                      ? 'hover:bg-primary/5 hover:text-foreground border-border'
+                      : ''
+                      }`}
                   >
                     <div className="font-semibold">{amount} ADA</div>
-                    <div className="text-xs opacity-80">${formatUSD(amount)}</div>
-                  </button>
+                    <div className="text-xs opacity-80">≈ {formatNGN(amount)}</div>
+                  </Button>
                 ))}
               </div>
-              
+
               <Button
                 variant="outline"
                 fullWidth
@@ -165,7 +185,7 @@ const DonationInterface = ({ campaign, onDonate }) => {
                 />
                 {donationAmount && (
                   <p className="text-sm text-muted-foreground">
-                    ≈ ${formatUSD(parseFloat(donationAmount) || 0)} USD
+                    ≈ {formatNGN(parseFloat(donationAmount) || 0)}
                   </p>
                 )}
               </div>
@@ -213,9 +233,9 @@ const DonationInterface = ({ campaign, onDonate }) => {
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">USD Equivalent:</span>
+                  <span className="text-muted-foreground">NGN Equivalent:</span>
                   <span className="font-medium text-foreground">
-                    ${formatUSD(parseFloat(donationAmount))}
+                    {formatNGN(parseFloat(donationAmount))}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
