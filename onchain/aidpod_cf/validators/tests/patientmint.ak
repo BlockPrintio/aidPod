@@ -20,8 +20,6 @@ const auth_policy = #"ddeeff"
 
 const hospital_auth_policy = #"ddeeff"
 
-const campaign_token_policy = #"ff0011"
-
 const patient_name = "JohnDoe"
 
 const transaction_id_1 =
@@ -160,7 +158,6 @@ fn mint_auth(options: MintTestOptions) -> Bool {
   patients.patient_campaign.mint(
     admin_token,
     hospital_auth_policy,
-    campaign_token_policy,
     redeemer,
     auth_policy,
     tx,
@@ -314,7 +311,6 @@ fn burn_auth(options: BurnTestOptions) -> Bool {
   patients.patient_campaign.mint(
     admin_token,
     hospital_auth_policy,
-    campaign_token_policy,
     redeemer,
     auth_policy,
     tx,
