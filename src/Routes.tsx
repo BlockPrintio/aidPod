@@ -4,7 +4,6 @@ import ScrollToTop from "components/ScrollToTop";
 import ErrorBoundary from "components/ErrorBoundary";
 import NotFound from "pages/NotFound";
 import NotAuthorized from "pages/NotAuthorized";
-import ProtectedRoute from "components/routing/ProtectedRoute";
 import Landing from './pages/Landing';
 import CampaignDetailsAndDonation from './pages/campaign-details-donation';
 import HospitalVerificationDashboard from './pages/hospital-verification-dashboard';
