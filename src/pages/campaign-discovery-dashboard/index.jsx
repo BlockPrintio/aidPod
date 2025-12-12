@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import Button from '../../components/ui/Button';
 import Header from '../../components/ui/Header';
-import WalletConnectionIndicator from '../../components/ui/WalletConnectionIndicator';
 import { useWallet } from '../../hooks/useWallet';
 import { campaignService } from '../../lib/services/campaign-service';
 
@@ -18,14 +17,14 @@ import QuickDonateModal from './components/QuickDonateModal';
 const CampaignDiscoveryDashboard = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   // State management
   const [campaigns, setCampaigns] = useState([]);
   const [filteredCampaigns, setFilteredCampaigns] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  
+
   // Filter and search state
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [currentSort, setCurrentSort] = useState(searchParams.get('sort') || 'relevance');
@@ -701,9 +700,9 @@ const CampaignDiscoveryDashboard = () => {
   const handleLoadMore = useCallback(async () => {
     // Simulate loading more campaigns
     await new Promise(resolve => setTimeout(resolve, 1000));
-    
+
     setCampaigns(prev => [...prev, ...moreMockCampaigns]);
-    
+
     setCurrentPage(prev => prev + 1);
     // In a real app, you would fetch more campaigns here
     setHasMore(false); // For demo, disable after first load
@@ -731,15 +730,15 @@ const CampaignDiscoveryDashboard = () => {
   const handleDonate = useCallback(async (donationData) => {
     // Simulate donation processing
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     // Update campaign with new donation
-    setCampaigns(prev => prev.map(campaign => 
-      campaign.id === donationData.campaignId 
+    setCampaigns(prev => prev.map(campaign =>
+      campaign.id === donationData.campaignId
         ? {
-            ...campaign,
-            currentAmount: campaign.currentAmount + donationData.amount,
-            donorCount: campaign.donorCount + 1
-          }
+          ...campaign,
+          currentAmount: campaign.currentAmount + donationData.amount,
+          donorCount: campaign.donorCount + 1
+        }
         : campaign
     ));
 
@@ -776,24 +775,7 @@ const CampaignDiscoveryDashboard = () => {
                 Support verified medical fundraising campaigns and make a difference in patients' lives
               </p>
             </div>
-            <div className="flex items-center space-x-3">
-              <WalletConnectionIndicator
-                isConnected={isConnected}
-                balance={walletInfo ? formatBalance(walletInfo.balance) : 0}
-                walletAddress={walletInfo ? walletInfo.address : ""}
-                onWalletConnect={handleWalletConnect}
-                onWalletDisconnect={handleWalletDisconnect}
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/patient-campaign-creation')}
-                iconName="Plus"
-                iconPosition="left"
-              >
-                Create Campaign
-              </Button>
-            </div>
+
           </div>
         </div>
 
@@ -824,7 +806,7 @@ const CampaignDiscoveryDashboard = () => {
                 onSortChange={handleSortChange}
               />
             </div>
-            
+
             <div className="text-sm text-muted-foreground">
               {filteredCampaigns.length} campaign{filteredCampaigns.length !== 1 ? 's' : ''} found
             </div>

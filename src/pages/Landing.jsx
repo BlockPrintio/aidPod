@@ -141,17 +141,17 @@ const Landing = () => {
                 <Icon name="Hexagon" size={14} />
                 <span>Powered by Cardano Blockchain</span>
               </div>
-              
+
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground mb-6 leading-tight">
                 Trusted Medical Crowdfunding with{' '}
                 <span className="text-gradient">Blockchain Transparency</span>
               </h1>
-              
+
               <p className="text-lg md:text-xl text-muted-foreground mb-10 leading-relaxed">
-                Every campaign is hospital-verified. Every donation is tracked on-chain. 
+                Every campaign is hospital-verified. Every donation is tracked on-chain.
                 Every disbursement goes directly to healthcare providers.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 mb-12">
                 <Link to="/campaign-discovery-dashboard">
                   <Button size="lg" className="btn-gradient shadow-glow w-full sm:w-auto">
@@ -166,7 +166,7 @@ const Landing = () => {
                   </Button>
                 </Link>
               </div>
-              
+
               {/* Trust Indicators */}
               <div className="flex flex-wrap gap-6">
                 <div className="trust-badge">
@@ -197,18 +197,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Genomic Trust Verification Section */}
-      {/* Genomic Trust Verification Section */}
-      <section className="py-20 bg-background">
-        <div className="container-xl space-y-8">
-          <div className="max-w-3xl mx-auto text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">Genomic Trust Verification</h2>
-            <p className="text-lg text-muted-foreground">
-              This dynamic model represents the underlying security of verified patient data, mirroring the complexity and integrity of genetic code.
-            </p>
-          </div>
-        </div>
-      </section>
+
       {/* Stats Section */}
       <section className="py-16 bg-card border-y border-border">
         <div className="container-xl">
@@ -237,7 +226,7 @@ const Landing = () => {
               We've reimagined medical crowdfunding with blockchain technology and hospital partnerships.
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, index) => (
               <div
@@ -266,7 +255,7 @@ const Landing = () => {
               A transparent, end-to-end workflow from campaign creation to fund disbursement.
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {howItWorks.map((item, index) => (
               <div key={index} className="relative">
@@ -304,7 +293,7 @@ const Landing = () => {
               Whether you're a hospital, patient, or donor, AidPod provides the tools you need.
             </p>
           </div>
-          
+
           <div className="grid lg:grid-cols-3 gap-8">
             {userFlows.map((flow, index) => (
               <div
@@ -322,7 +311,7 @@ const Landing = () => {
                       <p className="text-sm text-muted-foreground">{flow.description}</p>
                     </div>
                   </div>
-                  
+
                   <ul className="space-y-3 mb-6">
                     {flow.steps.map((step, stepIndex) => (
                       <li key={stepIndex} className="flex items-center gap-3 text-sm text-muted-foreground">
@@ -333,7 +322,7 @@ const Landing = () => {
                       </li>
                     ))}
                   </ul>
-                  
+
                   <Link to={flow.link}>
                     <Button variant="outline" className="w-full">
                       {flow.cta}
@@ -388,7 +377,7 @@ const Landing = () => {
                 <div className="text-xs text-muted-foreground">Trusted Medical Funding</div>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-6 text-sm text-muted-foreground">
               <Link to="/campaign-discovery-dashboard" className="hover:text-foreground transition-colors">
                 Campaigns
@@ -400,13 +389,13 @@ const Landing = () => {
                 Hospital Portal
               </Link>
             </div>
-            
+
             <div className="blockchain-badge">
               <Icon name="Hexagon" size={14} />
               <span>Built on Cardano</span>
             </div>
           </div>
-          
+
           <div className="mt-8 pt-8 border-t border-border text-center text-sm text-muted-foreground">
             © 2025 AidPod. Transparent medical crowdfunding powered by blockchain.
           </div>

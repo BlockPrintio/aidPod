@@ -5,10 +5,10 @@ import Button from './Button';
 import WalletConnector from '../WalletConnector';
 // import { useWallet } from '../../context/WalletContext';
 
-const Header = ({ 
-  userRole = null, 
+const Header = ({
+  userRole = null,
   isAuthenticated = false,
-  onLogout = () => {}
+  onLogout = () => { }
 }) => {
   // const { isConnected, wallet } = useWallet();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -74,7 +74,7 @@ const Header = ({
     <Link to="/" className="flex items-center space-x-2 group">
       <img src="/aidpod-logo.png" alt="AidPod Logo" className="w-8 h-8 object-contain" />
       <div className="flex flex-col">
-        <span className="text-xl font-bold text-foreground group-hover:text-primary transition-colors duration-200">
+        <span className="text-xl font-bold text-foreground group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-[hsl(199,89%,48%)] group-hover:to-[hsl(166,72%,40%)] transition-all duration-200">
           AidPod
         </span>
         <span className="text-xs text-muted-foreground -mt-1">
@@ -97,11 +97,10 @@ const Header = ({
               <Link
                 key={item?.path}
                 to={item?.path}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-medical text-sm font-medium transition-all duration-200 ${
-                  isActivePath(item?.path)
-                    ? 'bg-primary text-primary-foreground shadow-medical-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                }`}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-medical text-sm font-medium transition-all duration-200 ${isActivePath(item?.path)
+                  ? 'bg-primary text-primary-foreground shadow-medical-sm'
+                  : 'text-muted-foreground hover:bg-clip-text hover:text-transparent hover:bg-gradient-to-r hover:from-[hsl(199,89%,48%)] hover:to-[hsl(166,72%,40%)] hover:bg-muted/10'
+                  }`}
               >
                 <Icon name={item?.icon} size={16} />
                 <span>{item?.label}</span>
@@ -112,7 +111,7 @@ const Header = ({
           {/* Desktop Right Section */}
           <div className="hidden md:flex items-center space-x-4">
             <WalletSection />
-            
+
             {isAuthenticated ? (
               <div className="relative user-menu-container">
                 <button
@@ -180,17 +179,16 @@ const Header = ({
                   key={item?.path}
                   to={item?.path}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-medical text-sm font-medium transition-all duration-200 ${
-                    isActivePath(item?.path)
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                  }`}
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-medical text-sm font-medium transition-all duration-200 ${isActivePath(item?.path)
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-clip-text hover:text-transparent hover:bg-gradient-to-r hover:from-[hsl(199,89%,48%)] hover:to-[hsl(166,72%,40%)] hover:bg-muted/10'
+                    }`}
                 >
                   <Icon name={item?.icon} size={18} />
                   <span>{item?.label}</span>
                 </Link>
               ))}
-              
+
               <div className="border-t border-border pt-4 mt-4">
                 {isAuthenticated ? (
                   <>
