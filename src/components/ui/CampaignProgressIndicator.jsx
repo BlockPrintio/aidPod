@@ -5,7 +5,7 @@ const CampaignProgressIndicator = ({
   currentAmount = 0,
   targetAmount = 100000,
   currency = 'ADA',
-  usdRate = 0.35,
+  ngnRate = 1600,
   donorCount = 0,
   daysRemaining = null,
   isLive = true,
@@ -14,7 +14,7 @@ const CampaignProgressIndicator = ({
   className = ''
 }) => {
   const [animatedProgress, setAnimatedProgress] = useState(0);
-  const [showUSD, setShowUSD] = useState(false);
+  const [showNGN, setShowNGN] = useState(false);
 
   const progressPercentage = Math.min((currentAmount / targetAmount) * 100, 100);
 
@@ -26,7 +26,7 @@ const CampaignProgressIndicator = ({
   }, [progressPercentage]);
 
   const formatAmount = (amount, showCurrency = true) => {
-    const formatted = new Intl.NumberFormat('en-US', {
+    const formatted = new Intl.NumberFormat('en-NG', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2
     })?.format(amount);
@@ -34,14 +34,14 @@ const CampaignProgressIndicator = ({
     return showCurrency ? `${formatted} ${currency}` : formatted;
   };
 
-  const formatUSDAmount = (adaAmount) => {
-    const usdAmount = adaAmount * usdRate;
-    return new Intl.NumberFormat('en-US', {
+  const formatNGNAmount = (adaAmount) => {
+    const ngnAmount = adaAmount * ngnRate;
+    return new Intl.NumberFormat('en-NG', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'NGN',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0
-    })?.format(usdAmount);
+    })?.format(ngnAmount);
   };
 
   const getProgressColor = () => {
@@ -86,10 +86,10 @@ const CampaignProgressIndicator = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <button
-            onClick={() => setShowUSD(!showUSD)}
+            onClick={() => setShowNGN(!showNGN)}
             className={`font-bold ${sizeStyles?.textSize} ${getProgressTextColor()} hover:opacity-80 transition-opacity duration-200`}
           >
-            {showUSD ? formatUSDAmount(currentAmount) : formatAmount(currentAmount)}
+            {showNGN ? formatNGNAmount(currentAmount) : formatAmount(currentAmount)}
           </button>
           {isLive && (
             <div className="flex items-center space-x-1">
@@ -99,7 +99,7 @@ const CampaignProgressIndicator = ({
           )}
         </div>
         <div className={`text-muted-foreground ${sizeStyles?.textSize === 'text-sm' ? 'text-xs' : 'text-sm'}`}>
-          {progressPercentage?.toFixed(1)}% of {showUSD ? formatUSDAmount(targetAmount) : formatAmount(targetAmount)}
+          {progressPercentage?.toFixed(1)}% of {showNGN ? formatNGNAmount(targetAmount) : formatAmount(targetAmount)}
         </div>
       </div>
       {/* Progress Bar */}
@@ -152,9 +152,9 @@ const CampaignProgressIndicator = ({
             )}
           </div>
           
-          <div className="text-xs">
-            Remaining: {showUSD 
-              ? formatUSDAmount(Math.max(0, targetAmount - currentAmount))
+            <div className="text-xs">
+            Remaining: {showNGN 
+              ? formatNGNAmount(Math.max(0, targetAmount - currentAmount))
               : formatAmount(Math.max(0, targetAmount - currentAmount))
             }
           </div>

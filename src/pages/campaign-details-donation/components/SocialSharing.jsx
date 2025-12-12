@@ -104,7 +104,7 @@ const SocialSharing = ({ campaign }) => {
             <div>
               <h4 className="font-medium text-foreground mb-2">Help Spread the Word</h4>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Sharing this campaign can help {campaign?.patientName} reach more potential donors 
+                Sharing this campaign can help {campaign?.patientName} reach more potential donors
                 and achieve their medical funding goal faster. Every share counts!
               </p>
             </div>
@@ -116,16 +116,17 @@ const SocialSharing = ({ campaign }) => {
           <h4 className="font-medium text-foreground">Share on Social Media</h4>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {socialPlatforms?.map((platform) => (
-              <button
+              <Button
                 key={platform?.name}
+                variant="outline"
                 onClick={() => handleShare(platform)}
-                className={`flex items-center space-x-2 p-3 rounded-medical border border-border transition-all duration-200 ${platform?.bgColor}`}
+                className={`flex items-center space-x-2 h-auto py-3 justify-start border-border ${platform?.bgColor}`}
               >
                 <Icon name={platform?.icon} size={18} className={platform?.color} />
                 <span className="text-sm font-medium text-foreground">
                   {platform?.name}
                 </span>
-              </button>
+              </Button>
             ))}
           </div>
         </div>

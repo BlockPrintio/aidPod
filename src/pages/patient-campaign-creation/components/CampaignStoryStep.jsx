@@ -45,7 +45,7 @@ const CampaignStoryStep = ({ formData, updateFormData, errors }) => {
   const handleImageUpload = (e) => {
     const files = Array.from(e?.target?.files);
     const currentImages = formData?.campaignImages || [];
-    
+
     files?.forEach(file => {
       // Mock image upload
       const mockImageUrl = `https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=800&h=600&fit=crop&crop=center`;
@@ -57,7 +57,7 @@ const CampaignStoryStep = ({ formData, updateFormData, errors }) => {
       };
       currentImages?.push(newImage);
     });
-    
+
     updateFormData('campaignImages', currentImages);
   };
 
@@ -141,7 +141,7 @@ const CampaignStoryStep = ({ formData, updateFormData, errors }) => {
       </div>
       <div className="bg-card border border-border rounded-medical p-6">
         <h4 className="font-medium text-foreground mb-4">Campaign Images</h4>
-        
+
         <div className="space-y-4">
           <div className="border-2 border-dashed border-border rounded-medical p-6 text-center">
             <Icon name="Image" size={32} className="text-muted-foreground mx-auto mb-3" />
@@ -178,12 +178,14 @@ const CampaignStoryStep = ({ formData, updateFormData, errors }) => {
                     alt={image?.name}
                     className="w-full h-32 object-cover rounded-medical border border-border"
                   />
-                  <button
+                  <Button
+                    variant="destructive"
+                    size="icon"
                     onClick={() => removeImage(image?.id)}
-                    className="absolute top-2 right-2 w-6 h-6 bg-error text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                  >
-                    <Icon name="X" size={12} />
-                  </button>
+                    className="absolute top-2 right-2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-error hover:bg-error/90"
+                    iconName="X"
+                    iconSize={12}
+                  />
                 </div>
               ))}
             </div>

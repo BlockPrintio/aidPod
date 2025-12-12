@@ -1,3 +1,5 @@
+// This file contains the DNASimulation component
+// It is used to render a 3D DNA simulation using THREE.js
 import React, { useRef, useEffect } from 'react';
 import * as THREE from 'three';
 
@@ -155,5 +157,5 @@ const DNASimulation = ({ height = '500px' }) => {
   );
 };
 
+// The default export for the DNASimulation component
 export default DNASimulation;
-
