@@ -27,27 +27,28 @@ pub type PatientAuthRedeemer {
 validator patient_campaign(
   admin_token: AssetClass,
   hospital_auth_policy: ByteArray,
-  campaign_token_policy: ByteArray,
 ) {
   spend(
     _datum: Option<Data>,
     _redeemer: CampaignRedeemer,
-    _utxo: OutputReference,
+    utxo: OutputReference,
     self: Transaction,
   ) {
     let Transaction { inputs, extra_signatories, .. } = self
+    
+    expect Some(spent_input) =
+      list.find(inputs, fn(input) { input.output_reference == utxo })
 
-    // Find marker UTxO with campaign token and datum
+    // Find marker UTxO with datum at same address as spent UTxO
     expect Some(marker) =
       list.find(
         inputs,
         fn(input) {
+          // Must be at same script address
+          input.output.address == spent_input.output.address &&
+          // Must have inline datum
           when input.output.datum is {
-            InlineDatum(_) -> {
-              let tokens =
-                assets.tokens(input.output.value, campaign_token_policy)
-              dict.size(tokens) > 0
-            }
+            InlineDatum(_) -> True
             _ -> False
           }
         },
