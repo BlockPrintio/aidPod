@@ -1,0 +1,154 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ===========================================================================
+// HOSPITAL MODEL 
+// ===========================================================================
+model Hospital {
+  id              Int            @id @default(autoincrement())
+  name            String
+  email           String         @unique
+  licenseNumber   String         @unique
+  verificationDoc String? // Supabase file path 
+  walletAddress   String?        @unique // For on-chain verification 
+  status          HospitalStatus @default(PENDING)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  //  Relations
+  patients  Patient[]
+  campaigns Campaign[]
+  documents Document[]
+}
+
+// ================================================================================
+// PATIENT MODEL 
+// ================================================================================
+model Patient {
+  id           Int      @id @default(autoincrement())
+  firstname    String
+  lastname     String
+  email        String?  @unique
+  age          Int?
+  walletaddrss String?  @unique // For signing transactions 
+  createdAt    DateTime @default(now())
+  updated      DateTime @updatedAt
+
+  // Relations
+  hospital   Hospital? @relation(fields: [hospitalId], references: [id])
+  hospitalId Int?
+
+  campaigns Campaign[]
+  documents Document[]
+}
+
+// ====================================================================================
+// CAMPAIGN MODEL
+// ====================================================================================
+model Campaign {
+  id             Int     @id @default(autoincrement())
+  title          String
+  conditionImage String? // Supabase file path
+  amountNeeded   Float
+  amountRaised   Float
+  duration       Int //days
+  story          String
+  hospitalName   String // Provided by user, stored for visibility
+  escrowAddress  String? // Escrow address for the campaign
+
+  status    CampaignStatus @default(PENDING)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  // Relations
+  patient   Patient @relation(fields: [patientId], references: [id])
+  patientId Int
+
+  hospital   Hospital @relation(fields: [hospitalId], references: [id])
+  hospitalId Int
+
+  donations Donation[]
+  documents Document[]
+}
+
+// ===================================================================
+// 💰 DONATION MODEL (Tracks on-chain contributions)
+// ===================================================================
+model Donation {
+  id           Int      @id @default(autoincrement())
+  donorAddress String // Wallet address of donor
+  amount       Float
+  txHash       String? // On-chain transaction hash
+  createdAt    DateTime @default(now())
+
+  // Relations
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+  campaignId Int
+}
+
+// ===================================================================
+// 📄 DOCUMENT MODEL (For hospitals, patients & campaigns)
+// ===================================================================
+model Document {
+  id        Int          @id @default(autoincrement())
+  type      DocumentType
+  url       String // Supabase file path
+  createdAt DateTime     @default(now())
+
+  // Relations (Only one will be non-null)
+  hospital   Hospital? @relation(fields: [hospitalId], references: [id])
+  hospitalId Int?
+
+  patient   Patient? @relation(fields: [patientId], references: [id])
+  patientId Int?
+
+  campaign   Campaign? @relation(fields: [campaignId], references: [id])
+  campaignId Int?
+}
+
+// ===================================================================
+// 🔐 WALLET-BASED AUTH (Optional but recommended)
+// ===================================================================
+model WalletAuth {
+  id            Int      @id @default(autoincrement())
+  walletAddress String   @unique
+  nonce         String
+  createdAt     DateTime @default(now())
+}
+
+// ===================================================================
+// ENUMS — STATUS + DOCUMENT TYPES
+// ===================================================================
+enum HospitalStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum CampaignStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  FUNDING
+  COMPLETED
+}
+
+enum DocumentType {
+  HOSPITAL_VERIFICATION
+  PATIENT_ID
+  MEDICAL_BILL
+  MEDICAL_REPORT
+  CAMPAIGN_PROOF
+}
