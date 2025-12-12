@@ -30,12 +30,20 @@ export default defineConfig({
       }
     }
   },
+  resolve: {
+    alias: {
+      'crypto': 'crypto-browserify',
+      'node:crypto': 'crypto-browserify',
+    },
+    dedupe: ['crypto-browserify'],
+  },
   optimizeDeps: {
     esbuildOptions: {
       define: {
         global: 'globalThis'
       }
-    }
+    },
+    include: ['crypto-browserify'],
   },
   plugins: [
     tsconfigPaths(),
@@ -48,9 +56,10 @@ export default defineConfig({
         process: true,
       },
       protocolImports: true,
-      include: ['stream'],
+      include: ['stream', 'crypto'],
       overrides: {
         'readable-stream': 'stream-browserify',
+        crypto: 'crypto-browserify',
       },
     }),
   ],
