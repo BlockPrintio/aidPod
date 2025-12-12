@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Icon from '../components/AppIcon';
 import Button from '../components/ui/Button';
 import Header from '../components/ui/Header';
+import DNASimulation from '../components/DNASimulation';
 
 const Landing = () => {
   const features = [
@@ -129,61 +130,85 @@ const Landing = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header userRole={null} isAuthenticated={false} />
-      
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-hero-gradient">
+      <section className="relative overflow-hidden bg-hero-gradient min-h-screen flex items-center">
         <div className="absolute inset-0 bg-grid-pattern opacity-30" />
         <div className="container-xl py-20 lg:py-32 relative">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="blockchain-badge mb-6 mx-auto w-fit">
-              <Icon name="Hexagon" size={14} />
-              <span>Powered by Cardano Blockchain</span>
-            </div>
-            
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground mb-6 leading-tight">
-              Trusted Medical Crowdfunding with{' '}
-              <span className="text-gradient">Blockchain Transparency</span>
-            </h1>
-            
-            <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed">
-              Every campaign is hospital-verified. Every donation is tracked on-chain. 
-              Every disbursement goes directly to healthcare providers.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/campaign-discovery-dashboard">
-                <Button size="lg" className="btn-gradient shadow-glow w-full sm:w-auto">
-                  <Icon name="Search" size={20} className="mr-2" />
-                  Discover Campaigns
-                </Button>
-              </Link>
-              <Link to="/patient-campaign-creation">
-                <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                  <Icon name="Plus" size={20} className="mr-2" />
-                  Start a Campaign
-                </Button>
-              </Link>
-            </div>
-            
-            {/* Trust Indicators */}
-            <div className="flex flex-wrap justify-center gap-6 mt-12">
-              <div className="trust-badge">
-                <Icon name="ShieldCheck" size={14} />
-                <span>Hospital Verified</span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left Content */}
+            <div className="text-left">
+              <div className="blockchain-badge mb-6 w-fit">
+                <Icon name="Hexagon" size={14} />
+                <span>Powered by Cardano Blockchain</span>
               </div>
-              <div className="trust-badge">
-                <Icon name="Lock" size={14} />
-                <span>Smart Contract Secured</span>
+              
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground mb-6 leading-tight">
+                Trusted Medical Crowdfunding with{' '}
+                <span className="text-gradient">Blockchain Transparency</span>
+              </h1>
+              
+              <p className="text-lg md:text-xl text-muted-foreground mb-10 leading-relaxed">
+                Every campaign is hospital-verified. Every donation is tracked on-chain. 
+                Every disbursement goes directly to healthcare providers.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 mb-12">
+                <Link to="/campaign-discovery-dashboard">
+                  <Button size="lg" className="btn-gradient shadow-glow w-full sm:w-auto">
+                    <Icon name="Search" size={20} className="mr-2" />
+                    Discover Campaigns
+                  </Button>
+                </Link>
+                <Link to="/patient-campaign-creation">
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                    <Icon name="Plus" size={20} className="mr-2" />
+                    Start a Campaign
+                  </Button>
+                </Link>
               </div>
-              <div className="trust-badge">
-                <Icon name="Eye" size={14} />
-                <span>100% Transparent</span>
+              
+              {/* Trust Indicators */}
+              <div className="flex flex-wrap gap-6">
+                <div className="trust-badge">
+                  <Icon name="ShieldCheck" size={14} />
+                  <span>Hospital Verified</span>
+                </div>
+                <div className="trust-badge">
+                  <Icon name="Lock" size={14} />
+                  <span>Smart Contract Secured</span>
+                </div>
+                <div className="trust-badge">
+                  <Icon name="Eye" size={14} />
+                  <span>100% Transparent</span>
+                </div>
               </div>
             </div>
+
+            {/* Right DNA Visualization */}
+            <div className="hidden lg:block h-[600px]">
+              <DNASimulation height="600px" />
+            </div>
+          </div>
+
+          {/* Mobile DNA Visualization */}
+          <div className="lg:hidden mt-12 h-[400px]">
+            <DNASimulation height="400px" />
           </div>
         </div>
       </section>
 
+      {/* Genomic Trust Verification Section */}
+      {/* Genomic Trust Verification Section */}
+      <section className="py-20 bg-background">
+        <div className="container-xl space-y-8">
+          <div className="max-w-3xl mx-auto text-center mb-12">
+            <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">Genomic Trust Verification</h2>
+            <p className="text-lg text-muted-foreground">
+              This dynamic model represents the underlying security of verified patient data, mirroring the complexity and integrity of genetic code.
+            </p>
+          </div>
+        </div>
+      </section>
       {/* Stats Section */}
       <section className="py-16 bg-card border-y border-border">
         <div className="container-xl">
