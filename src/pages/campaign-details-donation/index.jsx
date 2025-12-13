@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
+import { useWallet } from '@meshsdk/react';
 import Header from '../../components/ui/Header';
 import Icon from '../../components/AppIcon';
 import Button from '../../components/ui/Button';
@@ -11,6 +12,9 @@ import DonationInterface from './components/DonationInterface';
 import CampaignTimeline from './components/CampaignTimeline';
 import DonorComments from './components/DonorComments';
 import SocialSharing from './components/SocialSharing';
+import { donateToCampaign } from '../../lib/mesh-sdk/campaign';
+import { campaignStorage } from '../../lib/storage/campaign-storage';
+import { adaToLovelace } from '../../lib/datum-helpers';
 
 const CampaignDetailsAndDonation = () => {
   const [searchParams] = useSearchParams();
@@ -18,9 +22,12 @@ const CampaignDetailsAndDonation = () => {
   const navigate = useNavigate();
   const [campaign, setCampaign] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isDonating, setIsDonating] = useState(false);
   const [donationSuccess, setDonationSuccess] = useState(false);
+  const [donationError, setDonationError] = useState(null);
   const [userRole] = useState('donor');
   const [isAuthenticated] = useState(true);
+  const { wallet, connected } = useWallet();
 
   // Mock campaigns data (localized for Nigeria)
   const mockCampaigns = {
@@ -183,44 +190,210 @@ const CampaignDetailsAndDonation = () => {
   };
 
   useEffect(() => {
-    // Simulate loading campaign data
+    // Load campaign data from storage or mock data
     const loadCampaign = async () => {
       setLoading(true);
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Get campaign by ID or default to Aisha's campaign if ID not found or empty
-      const campaignId = id || "default";
-      const selectedCampaign = mockCampaigns[campaignId] || mockCampaigns["default"];
-      
-      setCampaign(selectedCampaign);
-      setLoading(false);
+      try {
+        // First, try to load from campaignStorage
+        if (id) {
+          const storedCampaign = campaignStorage.getCampaignById(id);
+          if (storedCampaign) {
+            console.log('📦 Loaded campaign from storage:', id);
+            // Convert stored campaign to display format
+            setCampaign({
+              ...storedCampaign,
+              title: storedCampaign.title || 'Untitled Campaign',
+              patientName: storedCampaign.patientName || 'Unknown Patient',
+              hospitalName: storedCampaign.hospitalName || 'Unknown Hospital',
+              targetAmount: storedCampaign.goalAda || storedCampaign.targetAmount || 0,
+              currentAmount: storedCampaign.currentAmount || 0,
+              donorCount: storedCampaign.donorCount || 0
+            });
+            setLoading(false);
+            return;
+          }
+        }
+
+        // Fallback to mock campaigns if not found in storage
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const campaignId = id || "default";
+        const selectedCampaign = mockCampaigns[campaignId] || mockCampaigns["default"];
+        
+        console.log('📦 Loaded campaign from mock data:', campaignId);
+        setCampaign(selectedCampaign);
+      } catch (error) {
+        console.error('Error loading campaign:', error);
+        // Fallback to default mock campaign
+        setCampaign(mockCampaigns["default"]);
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadCampaign();
   }, [id]);
 
+  // Handle donation - all logic in parent component
   const handleDonate = async (donationData) => {
+    console.log('🎯 Parent handleDonate called with data:', donationData);
+    
+    // Check if wallet is connected
+    if (!connected || !wallet) {
+      console.warn('❌ Wallet not connected');
+      setDonationError('Please connect your wallet first to make a donation');
+      return;
+    }
+
+    console.log('✅ Wallet is connected, proceeding with donation...');
+    setIsDonating(true);
+    setDonationError(null);
+
     try {
-      // Simulate donation processing
-      console.log('Processing donation:', donationData);
+      // Convert ADA amount to lovelace
+      const donationAmountLovelace = adaToLovelace(donationData?.amount || 0);
+      const donationAmountString = donationAmountLovelace.toString();
 
-      // Show success state
-      setDonationSuccess(true);
+      console.log('🔗 Wallet connected, building donation transaction...');
+      console.log(`💰 Donation amount: ${donationData?.amount} ADA (${donationAmountString} lovelace)`);
 
-      // Update campaign data
-      setCampaign(prev => ({
-        ...prev,
-        currentAmount: prev?.currentAmount + donationData?.amount,
-        donorCount: prev?.donorCount + 1
-      }));
+      // Build unsigned transaction
+      console.log('📝 Calling donateToCampaign...');
+      const unsignedTx = await donateToCampaign(donationAmountString, wallet);
+      console.log('✅ Unsigned transaction created:', unsignedTx);
+      
+      console.log('✍️ Requesting signature...');
+      const signedTx = await wallet.signTx(unsignedTx);
+      
+      console.log('📤 Submitting transaction...');
+      const txHash = await wallet.submitTx(signedTx);
+
+      const cardanoScanLink = `https://preprod.cardanoscan.io/transaction/${txHash}`;
+      
+      console.log('✅ Donation transaction submitted:', txHash);
+
+      // Get donor address
+      const donorAddress = await wallet.getChangeAddress();
+
+      // Track donation amount
+      const donationAmount = donationData?.amount || 0;
+      console.log(`💰 Tracking donation: ${donationAmount} ADA to campaign ${campaign?.id}`);
+
+      // Update campaign in localStorage using campaignStorage
+      if (campaign?.id) {
+        // Check if campaign exists in storage, if not create it first
+        let campaignToUpdate = campaignStorage.getCampaignById(campaign.id);
+        
+        if (!campaignToUpdate) {
+          console.log('📝 Campaign not in storage, creating entry...');
+          // Create campaign entry in storage if it doesn't exist
+          const campaignDataForStorage = {
+            title: campaign.title || 'Untitled Campaign',
+            description: campaign.story || '',
+            goalAda: campaign.targetAmount || 0,
+            creator: donorAddress, // Use donor address as creator for now
+            beneficiary: donorAddress,
+            medicalAuthority: campaign.hospitalName || '',
+            currentAmount: campaign.currentAmount || 0,
+            donorCount: campaign.donorCount || 0,
+            status: 'active',
+            patientName: campaign.patientName,
+            patientAge: campaign.patientAge,
+            medicalCondition: campaign.medicalCondition,
+            urgency: campaign.urgency,
+            location: campaign.location,
+            hospitalName: campaign.hospitalName,
+            durationDays: campaign.daysRemaining || 30,
+            verificationRequired: true
+          };
+          
+          // Create campaign with a placeholder transaction hash
+          campaignToUpdate = campaignStorage.addCampaign(campaignDataForStorage, txHash);
+          console.log('✅ Campaign created in storage:', campaignToUpdate.id);
+          
+          // Track published campaign in hospital tracking
+          try {
+            const { hospitalTracking } = await import('../../lib/storage/hospital-tracking');
+            hospitalTracking.trackPublishedCampaign(
+              campaignToUpdate.id,
+              campaign.patientName || 'Unknown Patient',
+              campaign.hospitalName || 'Unknown Hospital',
+              campaign.targetAmount || 0,
+              'System',
+              undefined,
+              txHash
+            );
+            console.log('✅ Campaign tracked in hospital dashboard');
+          } catch (error) {
+            console.warn('Could not track campaign in hospital tracking:', error);
+          }
+        }
+
+        // Add donation to campaign
+        const updatedCampaign = campaignStorage.addDonation(
+          campaign.id,
+          donationAmount,
+          donorAddress,
+          txHash
+        );
+
+        if (updatedCampaign) {
+          console.log('✅ Donation saved to localStorage');
+          console.log(`📊 Campaign balance updated: ${updatedCampaign.currentAmount} ADA`);
+          console.log(`📊 Total donations: ${updatedCampaign.donations?.length || 0}`);
+          
+          // Ensure donation is tracked in hospital tracking
+          try {
+            const { hospitalTracking } = await import('../../lib/storage/hospital-tracking');
+            const trackedDonation = hospitalTracking.trackDonation(
+              campaign.id,
+              donationAmount,
+              donorAddress,
+              txHash
+            );
+            console.log('✅ Donation tracked in hospital dashboard:', trackedDonation.donationId);
+            console.log(`💰 Donation amount: ${donationAmount} ADA`);
+          } catch (error) {
+            console.error('❌ Could not track donation in hospital tracking:', error);
+          }
+          
+          // Update local campaign state
+          setCampaign(prev => ({
+            ...prev,
+            currentAmount: updatedCampaign.currentAmount,
+            donorCount: updatedCampaign.donorCount,
+            lastDonation: updatedCampaign.lastDonation,
+            donations: updatedCampaign.donations
+          }));
+        } else {
+          console.warn('⚠️ Failed to update campaign in storage');
+        }
+      } else {
+        console.warn('⚠️ Campaign ID not found, cannot save donation');
+        // Fallback: update local state if campaign not in storage
+        setCampaign(prev => ({
+          ...prev,
+          currentAmount: (prev?.currentAmount || 0) + donationAmount,
+          donorCount: (prev?.donorCount || 0) + 1
+        }));
+      }
+
+      // Show success state with transaction info
+      setDonationSuccess({
+        txHash,
+        explorerLink: cardanoScanLink,
+        amount: donationData?.amount
+      });
 
       // Reset success state after 5 seconds
       setTimeout(() => {
         setDonationSuccess(false);
       }, 5000);
     } catch (error) {
-      console.error('Donation failed:', error);
+      console.error('❌ Donation failed:', error);
+      setDonationError(`Failed to process donation: ${error.message || 'Unknown error'}`);
+    } finally {
+      setIsDonating(false);
     }
   };
 
@@ -283,18 +456,52 @@ const CampaignDetailsAndDonation = () => {
       <Header
         userRole={userRole}
         isAuthenticated={isAuthenticated}
-        walletConnected={true}
+        walletConnected={connected}
         walletBalance={15420.75}
       />
       {/* Success Banner */}
       {donationSuccess && (
         <div className="bg-success text-success-foreground p-4">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center space-x-3">
+                <Icon name="CheckCircle" size={20} />
+                <span className="font-medium">
+                  Thank you! Your donation of {donationSuccess.amount} ADA has been successfully processed.
+                </span>
+              </div>
+              {donationSuccess.txHash && (
+                <div className="ml-8 text-sm opacity-90">
+                  <div className="break-all mb-1">Transaction: {donationSuccess.txHash}</div>
+                  <a 
+                    href={donationSuccess.explorerLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="underline hover:opacity-80 flex items-center space-x-1"
+                  >
+                    <span>View on Cardano Explorer</span>
+                    <Icon name="ExternalLink" size={14} />
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Banner */}
+      {donationError && (
+        <div className="bg-error text-error-foreground p-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center space-x-3">
-              <Icon name="CheckCircle" size={20} />
-              <span className="font-medium">
-                Thank you! Your donation has been successfully processed and will appear on the blockchain shortly.
-              </span>
+              <Icon name="AlertTriangle" size={20} />
+              <span className="font-medium flex-1">{donationError}</span>
+              <button 
+                onClick={() => setDonationError(null)}
+                className="hover:opacity-80"
+              >
+                <Icon name="X" size={16} />
+              </button>
             </div>
           </div>
         </div>
@@ -335,7 +542,12 @@ const CampaignDetailsAndDonation = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Donation Interface */}
-            <DonationInterface campaign={campaign} onDonate={handleDonate} />
+            <DonationInterface 
+              campaign={campaign} 
+              onDonate={handleDonate}
+              isDonating={isDonating}
+              walletConnected={connected}
+            />
 
             {/* Social Sharing */}
             <SocialSharing campaign={campaign} />

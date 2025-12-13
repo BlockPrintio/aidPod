@@ -1,3 +1,5 @@
+@import './tailwind.css';
+
 body {
   margin: 0;
   padding: 0;
@@ -9,4 +11,30 @@ body {
   line-height: normal;
   font-family: inherit;
   margin: unset;
+}
+
+/* Mesh SDK Style Overrides - Ensure compatibility with existing styles */
+.mesh-wallet-button,
+.mesh-wallet-button * {
+  font-family: inherit;
+}
+
+/* Scope Mesh SDK styles to avoid conflicts */
+.mesh-wallet-container {
+  /* Your custom styles can override Mesh SDK defaults here */
+}
+
+/* Ensure Mesh SDK modals work with your theme */
+.mesh-modal {
+  z-index: 9999;
+}
+
+/* Override Mesh SDK button styles to match your theme */
+.mesh-wallet-button {
+  border-radius: 0.5rem;
+  transition: all 0.2s;
+}
+
+.mesh-wallet-button:hover {
+  opacity: 0.9;
 }

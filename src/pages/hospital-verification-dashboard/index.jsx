@@ -1,36 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useWallet } from '@meshsdk/react';
 import Icon from '../../components/AppIcon';
 import Image from '../../components/AppImage';
 import Button from '../../components/ui/Button';
+import Input from '../../components/ui/Input';
 import Header from '../../components/ui/Header';
-import VerificationRequestCard from './components/VerificationRequestCard';
-import VerificationFilters from './components/VerificationFilters';
-import VerificationModal from './components/VerificationModal';
-import VerificationStats from './components/VerificationStats';
-import BulkActions from './components/BulkActions';
+import { hospitalTracking } from '../../lib/storage/hospital-tracking';
+import { campaignStorage } from '../../lib/storage/campaign-storage';
+import { claimCampaignFunds } from '../../lib/mesh-sdk/Hospital';
 
 const HospitalVerificationDashboard = () => {
-  const [verificationRequests, setVerificationRequests] = useState([]);
-  const [filteredRequests, setFilteredRequests] = useState([]);
-  const [selectedModal, setSelectedModal] = useState(null);
-  const [selectedRequests, setSelectedRequests] = useState([]);
-  const [filters, setFilters] = useState({
-    search: '',
-    urgency: 'all',
-    status: 'pending',
-    specialty: 'all',
-    sortBy: 'newest',
-    minAmount: 0,
-    maxAmount: 0,
-    submittedAfter: '',
-    submittedBefore: ''
-  });
+  const { wallet, connected } = useWallet();
   const [stats, setStats] = useState({});
   const [isLoading, setIsLoading] = useState(true);
+  const [publishedCampaigns, setPublishedCampaigns] = useState([]);
+  const [donations, setDonations] = useState([]);
+  const [claimingCampaign, setClaimingCampaign] = useState(null);
+  const [claimError, setClaimError] = useState(null);
+  const [claimSuccess, setClaimSuccess] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [expandedCampaigns, setExpandedCampaigns] = useState(new Set());
 
-  // Mock verifier information
-  const verifierInfo = {
+  // Hospital information
+  const hospitalInfo = {
     name: "Dr. Ngozi Adebayo",
     title: "Chief Medical Officer",
     institution: "Lagos University Teaching Hospital",
@@ -38,563 +31,231 @@ const HospitalVerificationDashboard = () => {
     avatar: "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=100&h=100&fit=crop&crop=face"
   };
 
-  // Mock verification requests data
-  const mockRequests = [
-    {
-      id: "VR-2024-001",
-      campaignId: "MC-8847",
-      patientName: "Chioma Okeke",
-      specialty: "oncology",
-      patientPhoto: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=100&h=100&fit=crop&crop=face",
-      age: 34,
-      condition: "Acute Lymphoblastic Leukemia",
-      location: "Lagos, Nigeria",
-      contactInfo: "chioma.okeke@email.com",
-      targetAmount: 125000,
-      urgency: "critical",
-      status: "pending",
-      priority: "High",
-      documentsCount: 8,
-      submittedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      lastUpdated: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      medicalSummary: `Patient diagnosed with Acute Lymphoblastic Leukemia requiring immediate chemotherapy treatment. Current condition is stable but requires urgent intervention to prevent progression. Treatment plan includes 6 months of intensive chemotherapy followed by maintenance therapy.`,
-      treatmentPlan: "Intensive chemotherapy protocol including Vincristine, Daunorubicin, and L-asparaginase. Treatment duration: 6-8 months with regular monitoring.",
-      documentTypes: ["Medical Records", "Lab Results", "Treatment Plan", "Insurance Documents"],
-      diagnosisCode: "C91.0",
-      treatingPhysician: "Dr. Babatunde Fashola, Oncology",
-      hospitalName: "Lagos University Teaching Hospital",
-      treatmentTimeline: "Immediate start required, 6-8 months duration",
-      costBreakdown: [
-        { description: "Chemotherapy Treatment", amount: 85000 },
-        { description: "Hospital Stay", amount: 25000 },
-        { description: "Laboratory Tests", amount: 8000 },
-        { description: "Medications", amount: 7000 }
-      ],
-      documents: [
-        {
-          name: "Medical_History_Complete.pdf",
-          type: "Medical Records",
-          size: "2.4 MB",
-          uploadDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
-        },
-        {
-          name: "Lab_Results_Latest.pdf",
-          type: "Laboratory",
-          size: "1.8 MB",
-          uploadDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
-        }
-      ]
-    },
-    {
-      id: "VR-2024-002",
-      campaignId: "MC-8848",
-      patientName: "Emeka Okafor",
-      specialty: "neurology",
-      patientPhoto: "https://images.unsplash.com/photo-1506277886164-e25aa3f4ef7f?w=100&h=100&fit=crop&crop=face",
-      age: 28,
-      condition: "Spinal Cord Injury - T12 Complete",
-      location: "Abuja, Nigeria",
-      contactInfo: "emeka.okafor@email.com",
-      targetAmount: 95000,
-      urgency: "high",
-      status: "in_review",
-      priority: "Medium",
-      documentsCount: 12,
-      submittedDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-      lastUpdated: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      medicalSummary: `Patient sustained complete T12 spinal cord injury in motor vehicle accident. Requires extensive rehabilitation therapy and adaptive equipment. Current mobility is wheelchair-dependent with good upper body function.`,
-      treatmentPlan: "Comprehensive rehabilitation program including physical therapy, occupational therapy, and psychological support. Duration: 12-18 months.",
-      documentTypes: ["MRI Scans", "Surgical Reports", "Rehabilitation Plan", "Insurance Claims", "Therapy Notes"],
-      diagnosisCode: "S34.109A",
-      treatingPhysician: "Dr. Zainab Ahmed, Neurosurgery",
-      hospitalName: "National Hospital Abuja",
-      treatmentTimeline: "Ongoing rehabilitation, 12-18 months",
-      costBreakdown: [
-        { description: "Rehabilitation Therapy", amount: 55000 },
-        { description: "Adaptive Equipment", amount: 25000 },
-        { description: "Home Modifications", amount: 15000 }
-      ]
-    },
-    {
-      id: "VR-2024-003",
-      campaignId: "MC-8849",
-      patientName: "Funke Adebayo",
-      specialty: "cardiology",
-      patientPhoto: "https://images.unsplash.com/photo-1589156280159-27698a70f29e?w=100&h=100&fit=crop&crop=face",
-      age: 42,
-      condition: "Congenital Heart Disease - Tetralogy of Fallot",
-      location: "Ibadan, Nigeria",
-      contactInfo: "funke.adebayo@email.com",
-      targetAmount: 180000,
-      urgency: "medium",
-      status: "pending",
-      priority: "High",
-      documentsCount: 15,
-      submittedDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-      lastUpdated: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
-      medicalSummary: `Adult patient with uncorrected Tetralogy of Fallot requiring complex cardiac surgery. Current symptoms include severe cyanosis, exercise intolerance, and declining cardiac function. Surgery is elective but recommended within 6 months.`,
-      treatmentPlan: "Complete intracardiac repair including VSD closure and pulmonary valve replacement. Pre-operative cardiac catheterization required.",
-      documentTypes: ["Echocardiogram", "Cardiac Catheterization", "CT Angiography", "Surgical Consultation", "Anesthesia Clearance"],
-      diagnosisCode: "Q21.3",
-      treatingPhysician: "Dr. Segun Oladipo, Cardiac Surgery",
-      hospitalName: "University College Hospital",
-      treatmentTimeline: "Surgery scheduled within 6 months",
-      costBreakdown: [
-        { description: "Cardiac Surgery", amount: 120000 },
-        { description: "ICU Care", amount: 35000 },
-        { description: "Pre-operative Testing", amount: 15000 },
-        { description: "Post-operative Care", amount: 10000 }
-      ]
-    },
-    {
-      id: "VR-2024-004",
-      campaignId: "MC-8850",
-      patientName: "Musa Ibrahim",
-      specialty: "orthopedics",
-      patientPhoto: "https://images.unsplash.com/photo-1531384441138-2736e62e0919?w=100&h=100&fit=crop&crop=face",
-      age: 55,
-      condition: "Osteoarthritis - Total Knee Replacement",
-      location: "Kano, Nigeria",
-      contactInfo: "musa.ibrahim@email.com",
-      targetAmount: 45000,
-      urgency: "low",
-      status: "pending",
-      priority: "Low",
-      documentsCount: 5,
-      submittedDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      lastUpdated: new Date(Date.now() - 0 * 24 * 60 * 60 * 1000),
-      medicalSummary: "Severe osteoarthritis in both knees causing significant mobility issues.",
-      treatmentPlan: "Bilateral total knee replacement surgery.",
-      documentTypes: ["X-Rays", "Surgical Referral"],
-      diagnosisCode: "M17.0",
-      treatingPhysician: "Dr. Aminu Kano",
-      hospitalName: "Aminu Kano Teaching Hospital",
-      treatmentTimeline: "Surgery within 3 months",
-      costBreakdown: [{ description: "Surgery", amount: 45000 }]
-    },
-    {
-      id: "VR-2024-005",
-      campaignId: "MC-8851",
-      patientName: "Nneka Onwudiwe",
-      specialty: "emergency",
-      patientPhoto: "https://images.unsplash.com/photo-1523824921871-d6f1a15151f1?w=100&h=100&fit=crop&crop=face",
-      age: 29,
-      condition: "Multiple Trauma - Car Accident",
-      location: "Enugu, Nigeria",
-      contactInfo: "nneka.onwudiwe@email.com",
-      targetAmount: 250000,
-      urgency: "critical",
-      status: "in_review",
-      priority: "High",
-      documentsCount: 20,
-      submittedDate: new Date(Date.now() - 0 * 24 * 60 * 60 * 1000),
-      lastUpdated: new Date(Date.now()),
-      medicalSummary: "Critical condition following severe car accident. Multiple fractures and internal bleeding.",
-      treatmentPlan: "Emergency surgery and ICU care.",
-      documentTypes: ["Trauma Report", "CT Scans"],
-      diagnosisCode: "T07",
-      treatingPhysician: "Dr. Chike Obi",
-      hospitalName: "University of Nigeria Teaching Hospital",
-      treatmentTimeline: "Immediate and ongoing",
-      costBreakdown: [{ description: "Emergency Care", amount: 250000 }]
-    },
-    {
-      id: "VR-2024-006",
-      campaignId: "MC-8852",
-      patientName: "Tunde Bakare",
-      specialty: "pediatrics",
-      patientPhoto: "https://images.unsplash.com/photo-1504199367641-aba8151af406?w=100&h=100&fit=crop&crop=face",
-      age: 8,
-      condition: "Cystic Fibrosis",
-      location: "Port Harcourt, Nigeria",
-      contactInfo: "parents.bakare@email.com",
-      targetAmount: 60000,
-      urgency: "medium",
-      status: "verified",
-      priority: "Medium",
-      documentsCount: 10,
-      submittedDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-      lastUpdated: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      medicalSummary: "Genetic disorder affecting lungs and digestive system.",
-      treatmentPlan: "Ongoing medication and therapy.",
-      documentTypes: ["Genetic Test", "Pulmonary Function Test"],
-      diagnosisCode: "E84.0",
-      treatingPhysician: "Dr. Joy Eke",
-      hospitalName: "University of Port Harcourt Teaching Hospital",
-      treatmentTimeline: "Chronic management",
-      costBreakdown: [{ description: "Annual Medication", amount: 60000 }]
-    },
-    {
-      id: "VR-2024-007",
-      campaignId: "MC-8853",
-      patientName: "Aisha Mohammed",
-      specialty: "surgery",
-      patientPhoto: "https://images.unsplash.com/photo-1534030347209-7147fd2e7a3c?w=100&h=100&fit=crop&crop=face",
-      age: 45,
-      condition: "Herniated Disc",
-      location: "Kaduna, Nigeria",
-      contactInfo: "aisha.mohammed@email.com",
-      targetAmount: 30000,
-      urgency: "low",
-      status: "rejected",
-      priority: "Low",
-      documentsCount: 4,
-      submittedDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
-      lastUpdated: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-      medicalSummary: "Chronic back pain due to herniated disc.",
-      treatmentPlan: "Microdiscectomy recommended.",
-      documentTypes: ["MRI"],
-      diagnosisCode: "M51.2",
-      treatingPhysician: "Dr. Yusuf Bello",
-      hospitalName: "Ahmadu Bello University Teaching Hospital",
-      treatmentTimeline: "Elective",
-      costBreakdown: [{ description: "Surgery", amount: 30000 }]
-    },
-    {
-      id: "VR-2024-008",
-      campaignId: "MC-8854",
-      patientName: "Kelechi Iheanacho",
-      specialty: "other",
-      patientPhoto: "https://images.unsplash.com/photo-1522512115668-c09775d6f424?w=100&h=100&fit=crop&crop=face",
-      age: 22,
-      condition: "Rare Autoimmune Disorder",
-      location: "Owerri, Nigeria",
-      contactInfo: "kelechi.i@email.com",
-      targetAmount: 85000,
-      urgency: "high",
-      status: "pending",
-      priority: "High",
-      documentsCount: 14,
-      submittedDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      lastUpdated: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      medicalSummary: "Undiagnosed autoimmune condition causing systemic inflammation.",
-      treatmentPlan: "Investigative immunotherapy.",
-      documentTypes: ["Blood Work", "Specialist Referrals"],
-      diagnosisCode: "D89.9",
-      treatingPhysician: "Dr. Ngozi Okonjo",
-      hospitalName: "Federal Medical Centre Owerri",
-      treatmentTimeline: "Urgent investigation",
-      costBreakdown: [{ description: "Immunotherapy", amount: 85000 }]
-    },
-    {
-      id: "VR-2024-009",
-      campaignId: "MC-8855",
-      patientName: "Bayo Ogunlesi",
-      specialty: "emergency",
-      patientPhoto: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop&crop=face",
-      age: 40,
-      condition: "Severe Trauma",
-      location: "Benin City, Nigeria",
-      contactInfo: "bayo.o@email.com",
-      targetAmount: 500000,
-      urgency: "critical",
-      status: "verified",
-      priority: "High",
-      documentsCount: 25,
-      submittedDate: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
-      lastUpdated: new Date(Date.now() - 19 * 24 * 60 * 60 * 1000),
-      medicalSummary: "Multiple injuries sustained from fall.",
-      treatmentPlan: "Reconstructive surgery and rehabilitation.",
-      documentTypes: ["X-Rays", "CT Scans"],
-      diagnosisCode: "T14.9",
-      treatingPhysician: "Dr. Osagie Ehanire",
-      hospitalName: "University of Benin Teaching Hospital",
-      treatmentTimeline: "Long-term recovery",
-      costBreakdown: [{ description: "Surgery & Rehab", amount: 500000 }]
-    },
-    {
-      id: "VR-2024-010",
-      campaignId: "MC-8856",
-      patientName: "Folake Coker",
-      specialty: "other",
-      patientPhoto: "https://images.unsplash.com/photo-1531123414780-f74242c2b052?w=100&h=100&fit=crop&crop=face",
-      age: 35,
-      condition: "Vision Correction",
-      location: "Jos, Nigeria",
-      contactInfo: "folake.coker@email.com",
-      targetAmount: 5000,
-      urgency: "low",
-      status: "pending",
-      priority: "Low",
-      documentsCount: 2,
-      submittedDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      lastUpdated: new Date(Date.now()),
-      medicalSummary: "Laser eye surgery for vision correction.",
-      treatmentPlan: "LASIK procedure.",
-      documentTypes: ["Eye Exam"],
-      diagnosisCode: "H52.1",
-      treatingPhysician: "Dr. Yakubu Dogara",
-      hospitalName: "Jos University Teaching Hospital",
-      treatmentTimeline: "One day procedure",
-      costBreakdown: [{ description: "Surgery", amount: 5000 }]
-    },
-    {
-      id: "VR-2024-011",
-      campaignId: "MC-8857",
-      patientName: "Yemi Alade",
-      specialty: "orthopedics",
-      patientPhoto: "https://images.unsplash.com/photo-1542596594-649edbc13630?w=100&h=100&fit=crop&crop=face",
-      age: 30,
-      condition: "Sports Injury",
-      location: "Calabar, Nigeria",
-      contactInfo: "yemi.alade@email.com",
-      targetAmount: 40000,
-      urgency: "medium",
-      status: "in_review",
-      priority: "Medium",
-      documentsCount: 6,
-      submittedDate: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
-      lastUpdated: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      medicalSummary: "Torn ACL from athletic activity.",
-      treatmentPlan: "ACL reconstruction surgery.",
-      documentTypes: ["MRI", "PT Eval"],
-      diagnosisCode: "S83.5",
-      treatingPhysician: "Dr. Donald Duke",
-      hospitalName: "University of Calabar Teaching Hospital",
-      treatmentTimeline: "Surgery and 6 months rehab",
-      costBreakdown: [{ description: "Surgery", amount: 40000 }]
-    },
-    {
-      id: "VR-2024-012",
-      campaignId: "MC-8858",
-      patientName: "Femi Kuti",
-      specialty: "cardiology",
-      patientPhoto: "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?w=100&h=100&fit=crop&crop=face",
-      age: 26,
-      condition: "Arrhythmia",
-      location: "Abeokuta, Nigeria",
-      contactInfo: "femi.kuti@email.com",
-      targetAmount: 90000,
-      urgency: "high",
-      status: "pending",
-      priority: "High",
-      documentsCount: 8,
-      submittedDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      lastUpdated: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      medicalSummary: "Severe cardiac arrhythmia requiring ablation.",
-      treatmentPlan: "Catheter ablation procedure.",
-      documentTypes: ["ECG", "Holter Monitor"],
-      diagnosisCode: "I47.9",
-      treatingPhysician: "Dr. Olusegun Obasanjo",
-      hospitalName: "Federal Medical Centre Abeokuta",
-      treatmentTimeline: "Immediate intervention",
-      costBreakdown: [{ description: "Ablation", amount: 90000 }]
-    }
-  ];
-
-  // Mock statistics
-  const mockStats = {
-    pendingReviews: 23,
-    verifiedToday: 8,
-    totalVerified: 156,
-    fundsVerified: 2450000,
-    pendingChange: 12,
-    verifiedChange: 25,
-    totalChange: 8,
-    fundsChange: 15
-  };
-
   useEffect(() => {
-    // Simulate API call
+    // Load campaigns and donations
     const loadData = async () => {
       setIsLoading(true);
       try {
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        setVerificationRequests(mockRequests);
-        setStats(mockStats);
+        // Load published campaigns and donations from tracking storage
+        const allCampaigns = campaignStorage.getAllCampaigns();
+        const trackingCampaigns = hospitalTracking.getPublishedCampaigns();
+        const trackingDonations = hospitalTracking.getDonations();
+
+        // Extract ALL donations from campaigns (from donations array)
+        const campaignDonations = [];
+        allCampaigns.forEach(campaign => {
+          if (campaign.donations && Array.isArray(campaign.donations)) {
+            campaign.donations.forEach(donation => {
+              campaignDonations.push({
+                campaignId: campaign.id,
+                amount: donation.amount,
+                donorAddress: donation.donorAddress,
+                transactionHash: donation.transactionHash,
+                timestamp: donation.timestamp
+              });
+            });
+          }
+          // Also include lastDonation if donations array doesn't exist (backward compatibility)
+          else if (campaign.lastDonation && campaign.lastDonation.transactionHash) {
+            campaignDonations.push({
+              campaignId: campaign.id,
+              amount: campaign.lastDonation.amount,
+              donorAddress: campaign.lastDonation.donorAddress,
+              transactionHash: campaign.lastDonation.transactionHash,
+              timestamp: campaign.lastDonation.timestamp
+            });
+          }
+        });
+
+        console.log(`📊 Found ${campaignDonations.length} donations across ${allCampaigns.length} campaigns`);
+
+        // Sync tracking storage with campaign storage
+        hospitalTracking.syncFromCampaignStorage(allCampaigns, campaignDonations);
+
+        // Update state
+        const campaigns = hospitalTracking.getPublishedCampaigns();
+        const donationsList = hospitalTracking.getDonations();
+        setPublishedCampaigns(campaigns);
+        setDonations(donationsList);
+
+        console.log(`📊 Hospital Dashboard: ${campaigns.length} campaigns, ${donationsList.length} donations tracked`);
+
+        // Calculate statistics
+        const trackingStats = hospitalTracking.getStatistics();
+        const totalClaimed = campaigns.reduce((sum, c) => sum + (c.totalClaimed || 0), 0);
+        const availableToClaim = campaigns.reduce((sum, c) => sum + (c.currentAmount - (c.totalClaimed || 0)), 0);
+
+        setStats({
+          ...trackingStats,
+          totalClaimed,
+          availableToClaim
+        });
+        
+        console.log(`📊 Stats: Total Raised: ${trackingStats.totalRaised} ADA, Total Donations: ${trackingStats.totalDonations}`);
       } catch (error) {
-        console.error('Error loading verification requests:', error);
+        console.error('Error loading data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
     loadData();
+
+    // Set up interval to sync data periodically
+    const syncInterval = setInterval(() => {
+      const allCampaigns = campaignStorage.getAllCampaigns();
+      
+      // Extract ALL donations from campaigns (from donations array)
+      const campaignDonations = [];
+      allCampaigns.forEach(campaign => {
+        if (campaign.donations && Array.isArray(campaign.donations)) {
+          campaign.donations.forEach(donation => {
+            campaignDonations.push({
+              campaignId: campaign.id,
+              amount: donation.amount,
+              donorAddress: donation.donorAddress,
+              transactionHash: donation.transactionHash,
+              timestamp: donation.timestamp
+            });
+          });
+        }
+        // Also include lastDonation if donations array doesn't exist (backward compatibility)
+        else if (campaign.lastDonation && campaign.lastDonation.transactionHash) {
+          campaignDonations.push({
+            campaignId: campaign.id,
+            amount: campaign.lastDonation.amount,
+            donorAddress: campaign.lastDonation.donorAddress,
+            transactionHash: campaign.lastDonation.transactionHash,
+            timestamp: campaign.lastDonation.timestamp
+          });
+        }
+      });
+      
+      console.log(`🔄 Syncing ${campaignDonations.length} donations from ${allCampaigns.length} campaigns`);
+      hospitalTracking.syncFromCampaignStorage(allCampaigns, campaignDonations);
+      const campaigns = hospitalTracking.getPublishedCampaigns();
+      const donationsList = hospitalTracking.getDonations();
+      setPublishedCampaigns(campaigns);
+      setDonations(donationsList);
+
+      console.log(`📊 After sync: ${campaigns.length} campaigns, ${donationsList.length} donations`);
+
+      // Update stats
+      const trackingStats = hospitalTracking.getStatistics();
+      const totalClaimed = campaigns.reduce((sum, c) => sum + (c.totalClaimed || 0), 0);
+      const availableToClaim = campaigns.reduce((sum, c) => sum + (c.currentAmount - (c.totalClaimed || 0)), 0);
+      setStats({
+        ...trackingStats,
+        totalClaimed,
+        availableToClaim
+      });
+      
+      console.log(`📊 Updated stats: Total Raised: ${trackingStats.totalRaised} ADA, Available: ${availableToClaim} ADA`);
+    }, 5000); // Sync every 5 seconds
+
+    return () => clearInterval(syncInterval);
   }, []);
 
-  useEffect(() => {
-    // Apply filters
-    let filtered = [...verificationRequests];
-
-    // Search filter
-    if (filters?.search?.trim()) {
-      const searchTerm = filters?.search?.toLowerCase();
-      filtered = filtered?.filter(request =>
-        request?.patientName?.toLowerCase()?.includes(searchTerm) ||
-        request?.condition?.toLowerCase()?.includes(searchTerm) ||
-        request?.campaignId?.toLowerCase()?.includes(searchTerm)
-      );
+  // Handle fund claiming
+  const handleClaimFunds = async (campaignId) => {
+    // Check if wallet is connected
+    if (!connected || !wallet) {
+      setClaimError('Please connect your wallet to claim funds');
+      return;
     }
 
-    // Status filter
-    if (filters?.status !== 'all') {
-      filtered = filtered?.filter(request => request?.status === filters?.status);
+    const campaign = publishedCampaigns.find(c => c.campaignId === campaignId);
+    if (!campaign) {
+      setClaimError('Campaign not found');
+      return;
     }
 
-    // Specialty filter
-    if (filters?.specialty !== 'all') {
-      filtered = filtered?.filter(request => request?.specialty?.toLowerCase() === filters?.specialty?.toLowerCase());
+    const availableAmount = campaign.currentAmount - (campaign.totalClaimed || 0);
+    if (availableAmount <= 0) {
+      setClaimError('No funds available to claim');
+      return;
     }
 
-    // Urgency filter
-    if (filters?.urgency !== 'all') {
-      filtered = filtered?.filter(request => request?.urgency === filters?.urgency);
+    // Check if campaign has transaction hash
+    if (!campaign.transactionHash) {
+      setClaimError('Campaign transaction hash not found');
+      return;
     }
 
-    // Amount filters
-    if (filters?.minAmount > 0) {
-      filtered = filtered?.filter(request => request?.targetAmount >= filters?.minAmount);
-    }
-    if (filters?.maxAmount > 0) {
-      filtered = filtered?.filter(request => request?.targetAmount <= filters?.maxAmount);
-    }
+    setClaimingCampaign(campaignId);
+    setClaimError(null);
+    setClaimSuccess(false);
 
-    // Date filters
-    if (filters?.submittedAfter) {
-      const afterDate = new Date(filters.submittedAfter);
-      filtered = filtered?.filter(request => new Date(request.submittedDate) >= afterDate);
-    }
-    if (filters?.submittedBefore) {
-      const beforeDate = new Date(filters.submittedBefore);
-      filtered = filtered?.filter(request => new Date(request.submittedDate) <= beforeDate);
-    }
-
-    // Sort
-    switch (filters?.sortBy) {
-      case 'newest':
-        filtered?.sort((a, b) => new Date(b.submittedDate) - new Date(a.submittedDate));
-        break;
-      case 'oldest':
-        filtered?.sort((a, b) => new Date(a.submittedDate) - new Date(b.submittedDate));
-        break;
-      case 'urgency':
-        const urgencyOrder = { critical: 4, high: 3, medium: 2, low: 1 };
-        filtered?.sort((a, b) => urgencyOrder?.[b?.urgency] - urgencyOrder?.[a?.urgency]);
-        break;
-      case 'amount_high':
-        filtered?.sort((a, b) => b?.targetAmount - a?.targetAmount);
-        break;
-      case 'amount_low':
-        filtered?.sort((a, b) => a?.targetAmount - b?.targetAmount);
-        break;
-      default:
-        break;
-    }
-
-    setFilteredRequests(filtered);
-  }, [verificationRequests, filters]);
-
-  const handleReviewRequest = (request) => {
-    setSelectedModal(request);
-  };
-
-  const handleQuickApprove = async (requestId) => {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      console.log('🔗 Wallet connected, building claim transaction...');
+      console.log(`💰 Claiming funds from campaign: ${campaignId}`);
+      console.log(`📋 Campaign TX Hash: ${campaign.transactionHash}`);
+      console.log(`🏥 Hospital Name: ${campaign.hospitalName}`);
+
+      // Build unsigned transaction
+      console.log('📝 Building claim transaction...');
+      const unsignedTx = await claimCampaignFunds(campaign.transactionHash, campaign.hospitalName, wallet);
       
-      setVerificationRequests(prev =>
-        prev?.map(req =>
-          req?.id === requestId
-            ? { ...req, status: 'verified', lastUpdated: new Date() }
-            : req
-        )
+      console.log('✍️ Requesting signature...');
+      const signedTx = await wallet.signTx(unsignedTx);
+      
+      console.log('📤 Submitting transaction...');
+      const txHash = await wallet.submitTx(signedTx);
+      
+      console.log('✅ Claim transaction submitted:', txHash);
+
+      const cardanoScanLink = `https://preprod.cardanoscan.io/transaction/${txHash}`;
+      
+      // Update campaign in hospital tracking
+      const updatedCampaign = hospitalTracking.updateCampaignClaim(
+        campaignId,
+        availableAmount,
+        txHash
       );
-      
-      // Update stats
-      setStats(prev => ({
-        ...prev,
-        pendingReviews: prev?.pendingReviews - 1,
-        verifiedToday: prev?.verifiedToday + 1,
-        totalVerified: prev?.totalVerified + 1
-      }));
-    } catch (error) {
-      console.error('Error approving request:', error);
-    }
-  };
 
-  const handleQuickReject = async (requestId) => {
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      setVerificationRequests(prev =>
-        prev?.map(req =>
-          req?.id === requestId
-            ? { ...req, status: 'rejected', lastUpdated: new Date() }
-            : req
-        )
-      );
-      
-      // Update stats
-      setStats(prev => ({
-        ...prev,
-        pendingReviews: prev?.pendingReviews - 1
-      }));
-    } catch (error) {
-      console.error('Error rejecting request:', error);
-    }
-  };
-
-  const handleApproveRequest = async (requestId, notes) => {
-    await handleQuickApprove(requestId);
-  };
-
-  const handleRejectRequest = async (requestId, notes) => {
-    await handleQuickReject(requestId);
-  };
-
-  const handleBulkAction = async (action, requestIds) => {
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      if (action === 'approve') {
-        setVerificationRequests(prev =>
-          prev?.map(req =>
-            requestIds?.includes(req?.id)
-              ? { ...req, status: 'verified', lastUpdated: new Date() }
-              : req
+      if (updatedCampaign) {
+        console.log('✅ Claim saved to localStorage');
+        
+        // Update local state
+        setPublishedCampaigns(prev =>
+          prev.map(c =>
+            c.campaignId === campaignId
+              ? { ...c, totalClaimed: (c.totalClaimed || 0) + availableAmount }
+              : c
           )
         );
-      } else if (action === 'reject') {
-        setVerificationRequests(prev =>
-          prev?.map(req =>
-            requestIds?.includes(req?.id)
-              ? { ...req, status: 'rejected', lastUpdated: new Date() }
-              : req
-          )
-        );
+
+        // Update stats
+        const campaigns = hospitalTracking.getPublishedCampaigns();
+        const totalClaimed = campaigns.reduce((sum, c) => sum + (c.totalClaimed || 0), 0);
+        const availableToClaim = campaigns.reduce((sum, c) => sum + (c.currentAmount - (c.totalClaimed || 0)), 0);
+        setStats(prev => ({
+          ...prev,
+          totalClaimed,
+          availableToClaim
+        }));
+
+        setClaimSuccess(true);
+        
+        // Reset after 5 seconds
+        setTimeout(() => {
+          setClaimSuccess(false);
+        }, 5000);
       }
-      
-      setSelectedRequests([]);
     } catch (error) {
-      console.error('Bulk action error:', error);
+      console.error('❌ Claim failed:', error);
+      setClaimError(`Failed to claim funds: ${error.message || 'Unknown error'}`);
+    } finally {
+      setClaimingCampaign(null);
     }
   };
 
-  const handleRequestSelection = (requestId, isSelected) => {
-    if (isSelected) {
-      setSelectedRequests(prev => [...prev, requestId]);
-    } else {
-      setSelectedRequests(prev => prev?.filter(id => id !== requestId));
-    }
-  };
-
-  const handleClearFilters = () => {
-    setFilters({
-      search: '',
-      urgency: 'all',
-      status: 'all',
-      specialty: 'all',
-      sortBy: 'newest',
-      minAmount: 0,
-      maxAmount: 0,
-      submittedAfter: '',
-      submittedBefore: ''
-    });
-  };
+  // Filter campaigns by search term
+  const filteredCampaigns = publishedCampaigns.filter(campaign =>
+    campaign.patientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    campaign.hospitalName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    campaign.campaignId?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (isLoading) {
     return (
@@ -602,14 +263,14 @@ const HospitalVerificationDashboard = () => {
         <Header
           userRole="hospital"
           isAuthenticated={true}
-          walletConnected={true}
+          walletConnected={connected}
           walletBalance={1250.75}
         />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center space-y-4">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-            <div className="text-lg font-medium text-foreground">Loading verification dashboard...</div>
-            <div className="text-sm text-muted-foreground">Fetching pending verification requests</div>
+            <div className="text-lg font-medium text-foreground">Loading dashboard...</div>
+            <div className="text-sm text-muted-foreground">Fetching campaigns and donations</div>
           </div>
         </div>
       </div>
@@ -621,7 +282,7 @@ const HospitalVerificationDashboard = () => {
       <Header
         userRole="hospital"
         isAuthenticated={true}
-        walletConnected={true}
+        walletConnected={connected}
         walletBalance={1250.75}
       />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -630,23 +291,23 @@ const HospitalVerificationDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">
-                Verification Dashboard
+                Hospital Dashboard
               </h1>
               <p className="text-muted-foreground">
-                Review and verify medical fundraising campaigns
+                Manage published campaigns and claim donated funds
               </p>
             </div>
             
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 bg-card border border-border rounded-medical px-4 py-2">
                 <Image
-                  src={verifierInfo?.avatar}
-                  alt={verifierInfo?.name}
+                  src={hospitalInfo?.avatar}
+                  alt={hospitalInfo?.name}
                   className="w-8 h-8 rounded-full object-cover"
                 />
                 <div className="text-sm">
-                  <div className="font-medium text-card-foreground">{verifierInfo?.name}</div>
-                  <div className="text-muted-foreground">{verifierInfo?.title}</div>
+                  <div className="font-medium text-card-foreground">{hospitalInfo?.name}</div>
+                  <div className="text-muted-foreground">{hospitalInfo?.institution}</div>
                 </div>
               </div>
               
@@ -665,104 +326,295 @@ const HospitalVerificationDashboard = () => {
         </div>
 
         {/* Statistics */}
-        <VerificationStats stats={stats} className="mb-8" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-card border border-border rounded-medical p-6">
+            <div className="text-sm text-muted-foreground mb-1">Total Campaigns</div>
+            <div className="text-2xl font-bold text-foreground">{stats.totalCampaigns || 0}</div>
+          </div>
+          <div className="bg-card border border-border rounded-medical p-6">
+            <div className="text-sm text-muted-foreground mb-1">Total Raised</div>
+            <div className="text-2xl font-bold text-primary">{(stats.totalRaised || 0).toLocaleString()} ADA</div>
+          </div>
+          <div className="bg-card border border-border rounded-medical p-6">
+            <div className="text-sm text-muted-foreground mb-1">Total Claimed</div>
+            <div className="text-2xl font-bold text-success">{(stats.totalClaimed || 0).toLocaleString()} ADA</div>
+          </div>
+          <div className="bg-card border border-border rounded-medical p-6">
+            <div className="text-sm text-muted-foreground mb-1">Available to Claim</div>
+            <div className="text-2xl font-bold text-warning">{(stats.availableToClaim || 0).toLocaleString()} ADA</div>
+          </div>
+        </div>
 
-        {/* Filters */}
-        <VerificationFilters
-          filters={filters}
-          onFiltersChange={setFilters}
-          onClearFilters={handleClearFilters}
-          totalRequests={verificationRequests?.length}
-          filteredCount={filteredRequests?.length}
-          className="mb-6"
-        />
+        {/* Success Banner */}
+        {claimSuccess && (
+          <div className="bg-success text-success-foreground p-4 rounded-medical mb-6">
+            <div className="flex items-center space-x-3">
+              <Icon name="CheckCircle" size={20} />
+              <span className="font-medium">
+                Successfully claimed funds from campaign!
+              </span>
+            </div>
+          </div>
+        )}
 
-        {/* Bulk Actions */}
-        <BulkActions
-          selectedRequests={selectedRequests}
-          onBulkAction={handleBulkAction}
-          onClearSelection={() => setSelectedRequests([])}
-          className="mb-6"
-        />
+        {/* Error Banner */}
+        {claimError && (
+          <div className="bg-error text-error-foreground p-4 rounded-medical mb-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <Icon name="AlertTriangle" size={20} />
+                <span className="font-medium">{claimError}</span>
+              </div>
+              <button 
+                onClick={() => setClaimError(null)}
+                className="hover:opacity-80"
+              >
+                <Icon name="X" size={16} />
+              </button>
+            </div>
+          </div>
+        )}
 
-        {/* Verification Requests */}
+        {/* Search */}
+        <div className="mb-6">
+          <Input
+            type="text"
+            placeholder="Search campaigns by patient name, hospital, or campaign ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            iconName="Search"
+            iconPosition="left"
+          />
+        </div>
+
+        {/* Published Campaigns */}
         <div className="space-y-6">
-          {filteredRequests?.length > 0 ? (
+          {filteredCampaigns.length > 0 ? (
             <>
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-foreground">
-                  Verification Requests ({filteredRequests?.length})
+                  Published Campaigns ({filteredCampaigns.length})
                 </h2>
-                
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedRequests(
-                      selectedRequests?.length === filteredRequests?.length 
-                        ? [] 
-                        : filteredRequests?.map(req => req?.id)
-                    )}
-                    iconName={selectedRequests?.length === filteredRequests?.length ? "Square" : "CheckSquare"}
-                    iconPosition="left"
-                  >
-                    {selectedRequests?.length === filteredRequests?.length ? 'Deselect All' : 'Select All'}
-                  </Button>
-                </div>
               </div>
 
               <div className="grid grid-cols-1 gap-6">
-                {filteredRequests?.map((request) => (
-                  <div key={request?.id} className="relative">
-                    <div className="absolute top-4 left-4 z-10">
-                      <input
-                        type="checkbox"
-                        checked={selectedRequests?.includes(request?.id)}
-                        onChange={(e) => handleRequestSelection(request?.id, e?.target?.checked)}
-                        className="w-4 h-4 text-primary bg-background border-border rounded focus:ring-primary focus:ring-2"
-                      />
+                {filteredCampaigns.map((campaign) => {
+                  const campaignDonations = donations.filter(d => d.campaignId === campaign.campaignId);
+                  const progress = campaign.targetAmount > 0 
+                    ? (campaign.currentAmount / campaign.targetAmount) * 100 
+                    : 0;
+                  const availableToClaim = campaign.currentAmount - (campaign.totalClaimed || 0);
+                  const isClaiming = claimingCampaign === campaign.campaignId;
+                  
+                  return (
+                    <div key={campaign.campaignId} className="bg-card border border-border rounded-medical p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div>
+                          <h3 className="text-lg font-semibold text-foreground mb-1">
+                            {campaign.patientName}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">
+                            {campaign.hospitalName}
+                          </p>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          campaign.status === 'active' 
+                            ? 'bg-success/10 text-success' 
+                            : campaign.status === 'completed'
+                            ? 'bg-primary/10 text-primary'
+                            : 'bg-error/10 text-error'
+                        }`}>
+                          {campaign.status}
+                        </span>
+                      </div>
+
+                      <div className="mb-4">
+                        <div className="flex justify-between text-sm mb-2">
+                          <span className="text-muted-foreground">Progress</span>
+                          <span className="font-medium text-foreground">
+                            {campaign.currentAmount.toLocaleString()} / {campaign.targetAmount.toLocaleString()} ADA
+                          </span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2">
+                          <div 
+                            className="bg-primary h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${Math.min(progress, 100)}%` }}
+                          />
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {progress.toFixed(1)}% funded
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-4 gap-4 mb-4">
+                        <div>
+                          <div className="text-sm text-muted-foreground">Donors</div>
+                          <div className="text-lg font-semibold text-foreground">{campaign.donorCount}</div>
+                        </div>
+                        <div>
+                          <div className="text-sm text-muted-foreground">Donations</div>
+                          <div className="text-lg font-semibold text-foreground">{campaignDonations.length}</div>
+                        </div>
+                        <div>
+                          <div className="text-sm text-muted-foreground">Claimed</div>
+                          <div className="text-lg font-semibold text-success">{(campaign.totalClaimed || 0).toLocaleString()} ADA</div>
+                        </div>
+                        <div>
+                          <div className="text-sm text-muted-foreground">Available</div>
+                          <div className="text-lg font-semibold text-warning">{availableToClaim.toLocaleString()} ADA</div>
+                        </div>
+                      </div>
+
+                      {/* Donations List */}
+                      <div className="mb-4 pt-4 border-t border-border">
+                        <button
+                          onClick={() => {
+                            const newExpanded = new Set(expandedCampaigns);
+                            if (newExpanded.has(campaign.campaignId)) {
+                              newExpanded.delete(campaign.campaignId);
+                            } else {
+                              newExpanded.add(campaign.campaignId);
+                            }
+                            setExpandedCampaigns(newExpanded);
+                          }}
+                          className="flex items-center justify-between w-full text-left hover:opacity-80 transition-opacity"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <Icon name="Heart" size={16} className="text-primary" />
+                            <span className="text-sm font-medium text-foreground">
+                              View All Donations ({campaignDonations.length})
+                            </span>
+                          </div>
+                          <Icon 
+                            name={expandedCampaigns.has(campaign.campaignId) ? "ChevronUp" : "ChevronDown"} 
+                            size={16} 
+                            className="text-muted-foreground"
+                          />
+                        </button>
+
+                        {expandedCampaigns.has(campaign.campaignId) && (
+                          <div className="mt-4 space-y-2 max-h-64 overflow-y-auto">
+                            {campaignDonations.length > 0 ? (
+                              <>
+                                {/* Sort donations by timestamp (newest first) */}
+                                {campaignDonations
+                                  .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                                  .map((donation) => {
+                                    // Calculate running balance (sum of all donations up to this point)
+                                    const sortedDonations = [...campaignDonations].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+                                    const donationIndex = sortedDonations.findIndex(d => d.donationId === donation.donationId);
+                                    const runningBalance = sortedDonations
+                                      .slice(0, donationIndex + 1)
+                                      .reduce((sum, d) => sum + d.amount, 0);
+                                    
+                                    return (
+                                      <div 
+                                        key={donation.donationId} 
+                                        className="bg-muted/50 border border-border rounded-medical p-3"
+                                      >
+                                        <div className="flex items-center justify-between mb-2">
+                                          <div className="flex items-center space-x-2">
+                                            <span className="font-semibold text-foreground">
+                                              {donation.amount.toLocaleString()} ADA
+                                            </span>
+                                            <span className="text-xs text-muted-foreground">
+                                              {new Date(donation.timestamp).toLocaleString()}
+                                            </span>
+                                          </div>
+                                          {donation.transactionHash && (
+                                            <a
+                                              href={`https://preprod.cardanoscan.io/transaction/${donation.transactionHash}`}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="text-xs text-primary hover:underline flex items-center space-x-1"
+                                            >
+                                              <span>View TX</span>
+                                              <Icon name="ExternalLink" size={12} />
+                                            </a>
+                                          )}
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                          <div className="text-xs font-mono text-muted-foreground">
+                                            Donor: {donation.donorAddress.substring(0, 12)}...{donation.donorAddress.substring(donation.donorAddress.length - 8)}
+                                          </div>
+                                          <div className="text-xs font-medium text-primary">
+                                            Balance: {runningBalance.toLocaleString()} ADA
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                {/* Total Summary */}
+                                <div className="bg-primary/10 border border-primary/20 rounded-medical p-3 mt-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-foreground">Total Donations:</span>
+                                    <span className="text-sm font-bold text-primary">
+                                      {campaignDonations.reduce((sum, d) => sum + d.amount, 0).toLocaleString()} ADA
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center justify-between mt-1">
+                                    <span className="text-xs text-muted-foreground">Current Balance:</span>
+                                    <span className="text-xs font-semibold text-foreground">
+                                      {campaign.currentAmount.toLocaleString()} ADA
+                                    </span>
+                                  </div>
+                                </div>
+                              </>
+                            ) : (
+                              <div className="text-center py-4 text-sm text-muted-foreground">
+                                No donations yet
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex items-center justify-between pt-4 border-t border-border">
+                        <div className="text-xs text-muted-foreground">
+                          Published: {new Date(campaign.publishedDate).toLocaleDateString()}
+                          {campaign.transactionHash && (
+                            <span className="ml-2">
+                              TX: {campaign.transactionHash.substring(0, 16)}...
+                            </span>
+                          )}
+                        </div>
+                        <Button
+                          variant="default"
+                          onClick={() => handleClaimFunds(campaign.campaignId)}
+                          disabled={availableToClaim <= 0 || isClaiming || !connected}
+                          loading={isClaiming}
+                          iconName="DollarSign"
+                          iconPosition="left"
+                        >
+                          {isClaiming 
+                            ? 'Claiming...' 
+                            : availableToClaim > 0
+                              ? `Claim ${availableToClaim.toLocaleString()} ADA`
+                              : 'No Funds Available'
+                          }
+                        </Button>
+                      </div>
                     </div>
-                    <VerificationRequestCard
-                      request={request}
-                      onReview={handleReviewRequest}
-                      onQuickApprove={handleQuickApprove}
-                      onQuickReject={handleQuickReject}
-                      className="ml-12"
-                    />
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           ) : (
             <div className="text-center py-12">
-              <Icon name="FileSearch" size={64} className="mx-auto mb-4 text-muted-foreground opacity-50" />
+              <Icon name="Campaign" size={64} className="mx-auto mb-4 text-muted-foreground opacity-50" />
               <h3 className="text-lg font-medium text-foreground mb-2">
-                No verification requests found
+                {searchTerm ? 'No campaigns found' : 'No published campaigns yet'}
               </h3>
-              <p className="text-muted-foreground mb-6">
-                {verificationRequests?.length === 0
-                  ? "There are no pending verification requests at this time."
-                  : "Try adjusting your filters to see more results."
+              <p className="text-muted-foreground">
+                {searchTerm 
+                  ? 'Try adjusting your search terms.'
+                  : 'Campaigns will appear here once they are published.'
                 }
               </p>
-              {verificationRequests?.length > 0 && (
-                <Button variant="outline" onClick={handleClearFilters}>
-                  Clear Filters
-                </Button>
-              )}
             </div>
           )}
         </div>
       </div>
-      {/* Verification Modal */}
-      <VerificationModal
-        request={selectedModal}
-        isOpen={!!selectedModal}
-        onClose={() => setSelectedModal(null)}
-        onApprove={handleApproveRequest}
-        onReject={handleRejectRequest}
-        verifierInfo={verifierInfo}
-      />
     </div>
   );
 };

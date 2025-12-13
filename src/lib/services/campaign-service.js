@@ -104,25 +104,28 @@ class CampaignService {
     console.log(`📦 Found ${storedCampaigns.length} campaigns in local storage`);
     
     return storedCampaigns.map(campaign => ({
-      id: campaign.id,
-      title: campaign.title,
-      patientName: campaign.creator || "Anonymous",
-      medicalCondition: "Medical Campaign",
-      urgency: this.getUrgencyFromGoal(campaign.goalAda),
+      id: campaign.id || '',
+      title: campaign.title || 'Untitled Campaign',
+      patientName: campaign.patientName || campaign.creator || "Anonymous",
+      age: campaign.patientAge,
+      medicalCondition: campaign.medicalCondition || "Medical Campaign",
+      urgency: campaign.urgency || this.getUrgencyFromGoal(campaign.goalAda || 0),
       image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop",
-      storyPreview: campaign.description,
-      currentAmount: campaign.currentAmount,
-      targetAmount: campaign.goalAda,
-      donorCount: campaign.donorCount,
-      daysRemaining: this.getDaysRemainingFromCreated(campaign.createdAt, campaign.durationDays),
-      location: "Blockchain",
-      verificationStatus: "verified",
-      verifierName: "Blockchain Verified",
-      verificationDate: campaign.createdAt.split('T')[0],
-      status: campaign.status,
-      createdAt: campaign.createdAt.split('T')[0],
+      storyPreview: campaign.description || '',
+      currentAmount: campaign.currentAmount || 0,
+      targetAmount: campaign.goalAda || 0,
+      donorCount: campaign.donorCount || 0,
+      daysRemaining: this.getDaysRemainingFromCreated(campaign.createdAt || '', campaign.durationDays || 30),
+      location: campaign.location || "Unknown",
+      verificationStatus: campaign.verificationStatus || "verified",
+      verifierName: campaign.verifierName || "Blockchain Verified",
+      verificationDate: campaign.createdAt ? campaign.createdAt.split('T')[0] : undefined,
+      status: campaign.status || 'active',
+      createdAt: campaign.createdAt ? campaign.createdAt.split('T')[0] : new Date().toISOString().split('T')[0],
       isBlockchain: true,
-      transactionHash: campaign.transactionHash
+      transactionHash: campaign.transactionHash,
+      durationDays: campaign.durationDays,
+      goalAda: campaign.goalAda
     }));
   }
 
@@ -131,14 +134,16 @@ class CampaignService {
     return campaignStorage.addCampaign(campaignData, transactionHash);
   }
 
-  // Get all campaigns (mock + blockchain)
+  // Get all campaigns (localStorage + blockchain + mock)
   async getAllCampaigns() {
-    const [blockchainCampaigns, mockCampaigns] = await Promise.all([
+    const [localStorageCampaigns, blockchainCampaigns, mockCampaigns] = await Promise.all([
+      this.fetchSimpleTransactionCampaigns(),
       this.getBlockchainCampaigns(),
       Promise.resolve(this.mockCampaigns)
     ]);
 
-    return [...blockchainCampaigns, ...mockCampaigns];
+    // Combine all campaigns: localStorage first (most recent), then blockchain, then mock
+    return [...localStorageCampaigns, ...blockchainCampaigns, ...mockCampaigns];
   }
 
   // Get single campaign by ID

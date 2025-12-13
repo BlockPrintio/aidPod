@@ -2,10 +2,17 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useCampaignTransactions } from '../hooks/useCampaignTransactions';
 import { getCampaignStatusText } from '../lib/datum-helpers';
-import { buildPauseCampaignTx } from '../lib/transactions/pause-campaign';
-import { buildCancelCampaignTx } from '../lib/transactions/cancel-campaign';
 import Button from './ui/Button';
 import Icon from './AppIcon';
+
+// Stub functions for pause and cancel (not yet implemented)
+const buildPauseCampaignTx = async () => {
+  throw new Error('Pause campaign functionality is not yet implemented');
+};
+
+const buildCancelCampaignTx = async () => {
+  throw new Error('Cancel campaign functionality is not yet implemented');
+};
 
 export function CampaignManagement({ wallet, connected, campaignId, campaignUtxo, currentDatum }) {
   const [loading, setLoading] = useState(false);

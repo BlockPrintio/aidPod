@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import Button from '../../components/ui/Button';
 import Header from '../../components/ui/Header';
-import { useWallet } from '../../hooks/useWallet';
+import { useWallet } from '@meshsdk/react';
 import { campaignService } from '../../lib/services/campaign-service';
 
 // Import page components

@@ -5,7 +5,11 @@ import Button from '../components/ui/Button';
 import Header from '../components/ui/Header';
 import DNASimulation from '../components/DNASimulation';
 
+import { useWallet } from '@meshsdk/react';
+
 const Landing = () => {
+  const { setPersist } = useWallet();
+  setPersist(true);
   const features = [
     {
       icon: 'Shield',

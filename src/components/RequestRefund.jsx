@@ -2,9 +2,13 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useCampaignTransactions } from '../hooks/useCampaignTransactions';
 import { canRequestRefund, lovelaceToAda, adaToLovelace } from '../lib/datum-helpers';
-import { buildRefundTx } from '../lib/transactions/refund';
 import Button from './ui/Button';
 import Icon from './AppIcon';
+
+// Stub function for refund (not yet implemented)
+const buildRefundTx = async () => {
+  throw new Error('Refund functionality is not yet implemented');
+};
 
 export function RequestRefund({ 
   wallet, 

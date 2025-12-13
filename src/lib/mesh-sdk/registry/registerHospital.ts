@@ -1,7 +1,7 @@
 import { Deploy } from "../deploy";
-import { admin_token } from "../../lib/config";
-import { IWallet, mConStr0, MeshTxBuilder, stringToHex } from "@meshsdk/core";
-import { provider } from "../../lib/utils";
+import { admin_token } from "../config";
+import { mConStr0, MeshTxBuilder, stringToHex, IWallet } from "@meshsdk/core";
+import { provider } from "../config";
 
 /**
  * Register a new hospital by minting a hospital authentication token
@@ -12,10 +12,10 @@ import { provider } from "../../lib/utils";
  * 3. Exactly one token must be minted
  * 4. Token name must match pattern: {hospital_name}HOSPITAL
  */
-export const registerHospital = async (hospitalName: string, wallet: IWallet  ) => {
-  const changeAddress = await wallet?.getChangeAddress();
-  const utxos = await wallet?.getUtxos();
-  const collateral = (await wallet?.getCollateral())[0];
+export const registerHospital = async (hospitalName: string, wallet: IWallet) => {
+  const changeAddress = await wallet.getChangeAddress();
+  const utxos = await wallet.getUtxos();
+  const collateral = (await wallet.getCollateral())[0];
 
   const script = new Deploy(0);
   const { hospital_policyid, cbor } =
@@ -52,7 +52,14 @@ export const registerHospital = async (hospitalName: string, wallet: IWallet  ) 
     .txInCollateral(collateral.input.txHash, collateral.input.outputIndex)
     .selectUtxosFrom(utxos)
     .complete();
+
+  const signedTx = await wallet.signTx(unsignedTx);
+  const txHash = await provider.submitTx(signedTx);
+
   return {
-    unsignedTx,
-  }
+    txHash,
+    policyId: hospital_policyid,
+    tokenName: hospitalName + "HOSPITAL",
+    asset,
+  };
 };
