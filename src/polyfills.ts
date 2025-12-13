@@ -1,10 +1,12 @@
 // Polyfills for browser compatibility
 // This file ensures all necessary globals are available before the app starts
 
+import { Buffer } from 'buffer/';
+import process from 'process/browser';
+
 // Buffer polyfill
 if (typeof window !== 'undefined') {
   if (!window.Buffer) {
-    const { Buffer } = require('buffer/');
     window.Buffer = Buffer;
   }
 
@@ -15,7 +17,7 @@ if (typeof window !== 'undefined') {
 
   // Process polyfill
   if (!window.process) {
-    window.process = require('process/browser');
+    window.process = process;
   }
 }
 
