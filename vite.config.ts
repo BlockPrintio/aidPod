@@ -20,16 +20,10 @@ export default defineConfig({
         manualChunks: undefined, // Let Vite handle chunking automatically
         preserveModules: false,
       },
-      // Ensure proper module resolution
-      treeshake: {
-        moduleSideEffects: (id) => {
-          // Don't tree-shake Mesh SDK - it has complex class hierarchies
-          if (id.includes('@meshsdk') || id.includes('@harmoniclabs')) {
-            return true;
-          }
-          return 'no-external';
-        }
-      }
+      // IMPORTANT: Disable Rollup treeshaking.
+      // Mesh SDK + CBOR libs rely on side-effectful module init and circular class graphs.
+      // Treeshaking can reorder/drop base classes leading to "Class extends undefined" at runtime.
+      treeshake: false
     }
   },
   optimizeDeps: {
