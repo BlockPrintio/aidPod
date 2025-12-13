@@ -17,29 +17,15 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          // Keep Mesh SDK together - don't split it
-          if (id.includes('@meshsdk')) {
-            return 'vendor-mesh';
-          }
-          // React and related
-          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-            return 'vendor-react';
-          }
-          // UI libraries
-          if (id.includes('framer-motion') || id.includes('recharts') || id.includes('d3')) {
-            return 'vendor-ui';
-          }
-          // Everything else from node_modules
-          if (id.includes('node_modules')) {
-            return 'vendor';
-          }
-        }
+        manualChunks: undefined // Let Vite handle chunking automatically to avoid React duplication issues
       }
     }
   },
   optimizeDeps: {
     include: [
+      'react',
+      'react-dom',
+      'react-router-dom',
       '@meshsdk/core',
       '@meshsdk/react',
       'readable-stream'
@@ -49,6 +35,9 @@ export default defineConfig({
         global: 'globalThis'
       }
     }
+  },
+  resolve: {
+    dedupe: ['react', 'react-dom'] // Ensure only one version of React is used
   },
   plugins: [
     tsconfigPaths(),

@@ -1,18 +1,20 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
+import { MeshProvider } from "@meshsdk/react";
 import App from "./App";
 import "./styles/tailwind.css";
 import "./styles/index.css";
+import "@meshsdk/react/styles.css";
 
 console.log("🚀 Starting app initialization...");
 
 // Polyfill for Buffer if not available
-if (typeof window !== 'undefined' && !window.Buffer) {
+if (typeof window !== 'undefined' && typeof window.Buffer === 'undefined') {
   window.Buffer = require('buffer/').Buffer;
 }
 
-// Polyfill for global if not available
-if (typeof window !== 'undefined' && !window.global) {
+// Polyfill for global if not available  
+if (typeof window !== 'undefined' && typeof window.global === 'undefined') {
   window.global = window;
 }
 
@@ -28,34 +30,16 @@ try {
   console.log("🎨 Creating root...");
   const root = createRoot(container);
   
-  console.log("⚛️ Loading MeshProvider...");
+  console.log("⚛️ Rendering app...");
   
-  // Dynamically import MeshProvider to ensure polyfills are loaded first
-  import("@meshsdk/react").then(({ MeshProvider }) => {
-    import("@meshsdk/react/styles.css").then(() => {
-      console.log("✅ MeshProvider loaded, rendering app...");
-      
-      root.render(
-        <MeshProvider>
-          <App />
-        </MeshProvider>
-      );
-      
-      console.log("✅ App initialized successfully");
-    }).catch((error) => {
-      console.warn("Could not load Mesh styles, continuing anyway:", error);
-      root.render(
-        <MeshProvider>
-          <App />
-        </MeshProvider>
-      );
-    });
-  }).catch((error) => {
-    console.error("❌ Failed to load MeshProvider:", error);
-    // Render app without MeshProvider as fallback
-    root.render(<App />);
-    console.log("⚠️ App rendered without wallet functionality");
-  });
+  // Wrap entire app with MeshProvider for wallet functionality
+  root.render(
+    <MeshProvider>
+      <App />
+    </MeshProvider>
+  );
+  
+  console.log("✅ App initialized successfully");
 } catch (error) {
   console.error("❌ Failed to initialize app:", error);
   console.error("Error stack:", error?.stack);
