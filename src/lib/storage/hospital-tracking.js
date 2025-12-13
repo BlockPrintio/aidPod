@@ -13,6 +13,10 @@ class HospitalTrackingStorage {
   // Load data from localStorage
   loadData() {
     try {
+      // Check if localStorage is available (browser environment)
+      if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+        return { publishedCampaigns: [], donations: [] };
+      }
       const stored = localStorage.getItem(STORAGE_KEY);
       return stored ? JSON.parse(stored) : { publishedCampaigns: [], donations: [] };
     } catch (error) {
@@ -24,6 +28,10 @@ class HospitalTrackingStorage {
   // Save data to localStorage
   saveData() {
     try {
+      // Check if localStorage is available (browser environment)
+      if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+        return;
+      }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
     } catch (error) {
       console.error('Error saving hospital tracking data:', error);
