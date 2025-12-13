@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from '../components/AppIcon';
 import Button from '../components/ui/Button';
@@ -9,7 +9,10 @@ import { useWallet } from '@meshsdk/react';
 
 const Landing = () => {
   const { setPersist } = useWallet();
-  setPersist(true);
+  
+  useEffect(() => {
+    setPersist(true);
+  }, [setPersist]);
   const features = [
     {
       icon: 'Shield',

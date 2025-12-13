@@ -55,6 +55,10 @@ class CampaignStorage {
   // Load campaigns from localStorage
   private loadCampaigns(): StoredCampaign[] {
     try {
+      // Check if localStorage is available (browser environment)
+      if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+        return [];
+      }
       const stored = localStorage.getItem(STORAGE_KEY);
       return stored ? JSON.parse(stored) : [];
     } catch (error) {
@@ -66,6 +70,10 @@ class CampaignStorage {
   // Save campaigns to localStorage
   private saveCampaigns(): void {
     try {
+      // Check if localStorage is available (browser environment)
+      if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+        return;
+      }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.campaigns));
     } catch (error) {
       console.error('Error saving campaigns to storage:', error);
