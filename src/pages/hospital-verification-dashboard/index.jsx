@@ -8,7 +8,7 @@ import Input from '../../components/ui/Input';
 import Header from '../../components/ui/Header';
 import { hospitalTracking } from '../../lib/storage/hospital-tracking';
 import { campaignStorage } from '../../lib/storage/campaign-storage';
-import { claimCampaignFunds } from '../../lib/mesh-sdk/hospital';
+import { claimCampaignFunds } from '../../lib/mesh-sdk/Hospital';
 
 const HospitalVerificationDashboard = () => {
   const { wallet, connected } = useWallet();
