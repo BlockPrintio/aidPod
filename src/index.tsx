@@ -1,9 +1,12 @@
+// Import polyfills FIRST
+import './polyfills';
+
+import React from "react";
 import { createRoot } from "react-dom/client";
 import { MeshProvider } from "@meshsdk/react";
 import App from "./App";
 import "./styles/tailwind.css";
 import "./styles/index.css";
-// Import Mesh SDK styles using the exported path
 import "@meshsdk/react/styles.css";
 
 console.log("🚀 Starting app initialization...");
@@ -38,7 +41,7 @@ try {
   const container = document.getElementById("root");
   if (container) {
     container.innerHTML = `
-      <div style="padding: 20px; font-family: sans-serif; background: #fff;">
+      <div style="padding: 50px; font-family: Arial, sans-serif; background: #fff; color: #000;">
         <h1 style="color: red;">Application Error</h1>
         <p>Failed to initialize the application.</p>
         <pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; overflow: auto;">${error?.message || error}</pre>
