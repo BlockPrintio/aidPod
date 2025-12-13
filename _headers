@@ -1,0 +1,10 @@
+# Headers for Netlify
+/manifest.json
+  Content-Type: application/json
+  Access-Control-Allow-Origin: *
+
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+
