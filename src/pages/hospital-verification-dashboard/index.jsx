@@ -6,7 +6,6 @@ import Image from '../../components/AppImage';
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 import Header from '../../components/ui/Header';
-import { hospitalTracking } from '../../lib/storage/hospital-tracking';
 import { campaignStorage } from '../../lib/storage/campaign-storage';
 import { claimCampaignFunds } from '../../lib/mesh-sdk/Hospital';
 
@@ -36,6 +35,9 @@ const HospitalVerificationDashboard = () => {
     const loadData = async () => {
       setIsLoading(true);
       try {
+        // Dynamically import hospitalTracking to avoid static/dynamic import conflicts
+        const { hospitalTracking } = await import('../../lib/storage/hospital-tracking');
+        
         // Load published campaigns and donations from tracking storage
         const allCampaigns = campaignStorage.getAllCampaigns();
         const trackingCampaigns = hospitalTracking.getPublishedCampaigns();
@@ -102,55 +104,62 @@ const HospitalVerificationDashboard = () => {
     loadData();
 
     // Set up interval to sync data periodically
-    const syncInterval = setInterval(() => {
-      const allCampaigns = campaignStorage.getAllCampaigns();
-      
-      // Extract ALL donations from campaigns (from donations array)
-      const campaignDonations = [];
-      allCampaigns.forEach(campaign => {
-        if (campaign.donations && Array.isArray(campaign.donations)) {
-          campaign.donations.forEach(donation => {
+    const syncInterval = setInterval(async () => {
+      try {
+        // Dynamically import hospitalTracking to avoid static/dynamic import conflicts
+        const { hospitalTracking } = await import('../../lib/storage/hospital-tracking');
+        
+        const allCampaigns = campaignStorage.getAllCampaigns();
+        
+        // Extract ALL donations from campaigns (from donations array)
+        const campaignDonations = [];
+        allCampaigns.forEach(campaign => {
+          if (campaign.donations && Array.isArray(campaign.donations)) {
+            campaign.donations.forEach(donation => {
+              campaignDonations.push({
+                campaignId: campaign.id,
+                amount: donation.amount,
+                donorAddress: donation.donorAddress,
+                transactionHash: donation.transactionHash,
+                timestamp: donation.timestamp
+              });
+            });
+          }
+          // Also include lastDonation if donations array doesn't exist (backward compatibility)
+          else if (campaign.lastDonation && campaign.lastDonation.transactionHash) {
             campaignDonations.push({
               campaignId: campaign.id,
-              amount: donation.amount,
-              donorAddress: donation.donorAddress,
-              transactionHash: donation.transactionHash,
-              timestamp: donation.timestamp
+              amount: campaign.lastDonation.amount,
+              donorAddress: campaign.lastDonation.donorAddress,
+              transactionHash: campaign.lastDonation.transactionHash,
+              timestamp: campaign.lastDonation.timestamp
             });
-          });
-        }
-        // Also include lastDonation if donations array doesn't exist (backward compatibility)
-        else if (campaign.lastDonation && campaign.lastDonation.transactionHash) {
-          campaignDonations.push({
-            campaignId: campaign.id,
-            amount: campaign.lastDonation.amount,
-            donorAddress: campaign.lastDonation.donorAddress,
-            transactionHash: campaign.lastDonation.transactionHash,
-            timestamp: campaign.lastDonation.timestamp
-          });
-        }
-      });
-      
-      console.log(`🔄 Syncing ${campaignDonations.length} donations from ${allCampaigns.length} campaigns`);
-      hospitalTracking.syncFromCampaignStorage(allCampaigns, campaignDonations);
-      const campaigns = hospitalTracking.getPublishedCampaigns();
-      const donationsList = hospitalTracking.getDonations();
-      setPublishedCampaigns(campaigns);
-      setDonations(donationsList);
+          }
+        });
+        
+        console.log(`🔄 Syncing ${campaignDonations.length} donations from ${allCampaigns.length} campaigns`);
+        hospitalTracking.syncFromCampaignStorage(allCampaigns, campaignDonations);
+        const campaigns = hospitalTracking.getPublishedCampaigns();
+        const donationsList = hospitalTracking.getDonations();
+        setPublishedCampaigns(campaigns);
+        setDonations(donationsList);
 
-      console.log(`📊 After sync: ${campaigns.length} campaigns, ${donationsList.length} donations`);
+        console.log(`📊 After sync: ${campaigns.length} campaigns, ${donationsList.length} donations`);
 
-      // Update stats
-      const trackingStats = hospitalTracking.getStatistics();
-      const totalClaimed = campaigns.reduce((sum, c) => sum + (c.totalClaimed || 0), 0);
-      const availableToClaim = campaigns.reduce((sum, c) => sum + (c.currentAmount - (c.totalClaimed || 0)), 0);
-      setStats({
-        ...trackingStats,
-        totalClaimed,
-        availableToClaim
-      });
-      
-      console.log(`📊 Updated stats: Total Raised: ${trackingStats.totalRaised} ADA, Available: ${availableToClaim} ADA`);
+        // Update stats
+        const trackingStats = hospitalTracking.getStatistics();
+        const totalClaimed = campaigns.reduce((sum, c) => sum + (c.totalClaimed || 0), 0);
+        const availableToClaim = campaigns.reduce((sum, c) => sum + (c.currentAmount - (c.totalClaimed || 0)), 0);
+        setStats({
+          ...trackingStats,
+          totalClaimed,
+          availableToClaim
+        });
+        
+        console.log(`📊 Updated stats: Total Raised: ${trackingStats.totalRaised} ADA, Available: ${availableToClaim} ADA`);
+      } catch (error) {
+        console.error('Error syncing data:', error);
+      }
     }, 5000); // Sync every 5 seconds
 
     return () => clearInterval(syncInterval);
@@ -205,6 +214,9 @@ const HospitalVerificationDashboard = () => {
       console.log('✅ Claim transaction submitted:', txHash);
 
       const cardanoScanLink = `https://preprod.cardanoscan.io/transaction/${txHash}`;
+      
+      // Dynamically import hospitalTracking
+      const { hospitalTracking } = await import('../../lib/storage/hospital-tracking');
       
       // Update campaign in hospital tracking
       const updatedCampaign = hospitalTracking.updateCampaignClaim(
