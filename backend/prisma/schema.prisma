@@ -12,7 +12,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 
@@ -55,7 +54,7 @@ firstname String
 lastname  String
 email     String?  @unique
 age       Int?
-walletAddress String? @unique // For signing transactions 
+walletAddress String? @unique // For signing transactions
 
 // NFT Tracking Fields
 nftMinted     Boolean   @default(false)
@@ -91,6 +90,7 @@ hospitalId Int?
   escrowAddress String? // Escrow address for the campaign
 
   status         CampaignStatus @default(PENDING)
+  claimed        Boolean @default(false) // Whether funds have been claimed by hospital
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

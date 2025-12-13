@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       lastname,
       email,
       age: age ? parseInt(age) : null,
-      walletaddrss: walletAddress, // Note: keeping the typo from schema
+      walletAddress: walletAddress,
       hospitalId: hospitalId ? parseInt(hospitalId) : null
     };
 

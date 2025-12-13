@@ -21,20 +21,70 @@ export async function POST(
 
     const { campaignId } = params;
 
-    const campaign = await prisma.campaign.update({
+    // Find the hospital by wallet address
+    const hospital = await prisma.hospital.findUnique({
+      where: { walletAddress: auth.walletAddress },
+    });
+
+    if (!hospital) {
+      return NextResponse.json(
+        { error: 'Hospital not found for this wallet address' },
+        { status: 404 }
+      );
+    }
+
+    if (hospital.status !== 'VERIFIED') {
+      return NextResponse.json(
+        { error: 'Hospital must be verified to approve campaigns' },
+        { status: 403 }
+      );
+    }
+
+    // Find the campaign and verify it belongs to this hospital
+    const campaign = await prisma.campaign.findUnique({
       where: { id: parseInt(campaignId) },
-      data: { status: 'APPROVED' },
       include: {
         patient: true,
         hospital: true,
       },
     });
 
-    logger.info(`Campaign ${campaign.id} approved by ${auth.walletAddress}`);
+    if (!campaign) {
+      return NextResponse.json(
+        { error: 'Campaign not found' },
+        { status: 404 }
+      );
+    }
+
+    if (campaign.hospitalId !== hospital.id) {
+      return NextResponse.json(
+        { error: 'You can only approve campaigns for your hospital' },
+        { status: 403 }
+      );
+    }
+
+    if (campaign.status !== 'PENDING') {
+      return NextResponse.json(
+        { error: 'Campaign is not in pending status' },
+        { status: 400 }
+      );
+    }
+
+    // Update campaign status to FUNDING (approved and ready for donations)
+    const updatedCampaign = await prisma.campaign.update({
+      where: { id: parseInt(campaignId) },
+      data: { status: 'FUNDING' },
+      include: {
+        patient: true,
+        hospital: true,
+      },
+    });
+
+    logger.info(`Campaign ${updatedCampaign.id} approved by ${auth.walletAddress}`);
 
     return NextResponse.json({
       message: 'Campaign approved successfully',
-      campaign,
+      campaign: updatedCampaign,
     });
   } catch (error) {
     return handleError(error);
