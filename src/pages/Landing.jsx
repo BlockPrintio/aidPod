@@ -8,10 +8,16 @@ import DNASimulation from '../components/DNASimulation';
 import { useWallet } from '@meshsdk/react';
 
 const Landing = () => {
+  console.log('Landing component rendering...');
+  
   const { setPersist } = useWallet();
   
   useEffect(() => {
-    setPersist(true);
+    try {
+      setPersist(true);
+    } catch (error) {
+      console.error('Error setting persist:', error);
+    }
   }, [setPersist]);
   const features = [
     {
