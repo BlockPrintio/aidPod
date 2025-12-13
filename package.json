@@ -47,7 +47,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build --sourcemap",
+    "build": "NODE_OPTIONS='--max-old-space-size=4096' vite build --sourcemap",
     "serve": "vite preview"
   },
   "eslintConfig": {

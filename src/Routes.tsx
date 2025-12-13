@@ -64,14 +64,13 @@ const Routes = () => {
   } catch (error) {
     console.error('Routes render error:', error);
     return (
-      <div style={{ padding: "20px", textAlign: "center", color: "red" }}>
+      <div style={{ padding: "20px", textAlign: "center", color: "red", background: "#fff" }}>
         <h1>Routes Error</h1>
         <p>{error?.message || 'Unknown error'}</p>
-        <pre>{error?.stack}</pre>
+        <pre style={{ textAlign: 'left', background: '#f5f5f5', padding: '10px' }}>{error?.stack}</pre>
       </div>
     );
   }
 };
 
 export default Routes;
-
