@@ -10,7 +10,7 @@ export default defineConfig({
     outDir: "dist",
     chunkSizeWarningLimit: 2000,
     rollupOptions: {
-      external: ['readable-stream']
+      // Remove readable-stream from external - let polyfills handle it
     }
   },
   optimizeDeps: {
