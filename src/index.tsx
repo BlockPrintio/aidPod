@@ -1,3 +1,6 @@
+// Import polyfills FIRST
+import './polyfills';
+
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { MeshProvider } from "@meshsdk/react";
@@ -7,16 +10,6 @@ import "./styles/index.css";
 import "@meshsdk/react/styles.css";
 
 console.log("🚀 Starting app initialization...");
-
-// Polyfill for Buffer if not available
-if (typeof window !== 'undefined' && typeof window.Buffer === 'undefined') {
-  window.Buffer = require('buffer/').Buffer;
-}
-
-// Polyfill for global if not available  
-if (typeof window !== 'undefined' && typeof window.global === 'undefined') {
-  window.global = window;
-}
 
 // Add error handling for initialization
 try {

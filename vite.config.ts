@@ -17,7 +17,18 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        manualChunks: undefined // Let Vite handle chunking automatically to avoid React duplication issues
+        manualChunks: undefined, // Let Vite handle chunking automatically
+        preserveModules: false,
+      },
+      // Ensure proper module resolution
+      treeshake: {
+        moduleSideEffects: (id) => {
+          // Don't tree-shake Mesh SDK - it has complex class hierarchies
+          if (id.includes('@meshsdk') || id.includes('@harmoniclabs')) {
+            return true;
+          }
+          return 'no-external';
+        }
       }
     }
   },
@@ -26,14 +37,22 @@ export default defineConfig({
       'react',
       'react-dom',
       'react-router-dom',
+      'readable-stream',
+      'buffer',
+      'process'
+    ],
+    exclude: [
       '@meshsdk/core',
       '@meshsdk/react',
-      'readable-stream'
+      '@meshsdk/core-csl',
+      '@meshsdk/core-cst'
     ],
     esbuildOptions: {
       define: {
-        global: 'globalThis'
-      }
+        global: 'globalThis',
+        'process.env.NODE_ENV': '"production"'
+      },
+      keepNames: true // Preserve class names for debugging
     }
   },
   resolve: {
