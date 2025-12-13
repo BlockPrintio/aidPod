@@ -1,27 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useCampaignTransactions } from '../hooks/useCampaignTransactions';
-import { useWallet } from '../hooks/useWallet';
+import { useWallet } from '@meshsdk/react';
 import Button from './ui/Button';
 import Icon from './AppIcon';
 
 export function MilestoneClaiming({ campaign }) {
-  const { wallet, walletInfo, isConnected } = useWallet();
+  const { wallet, connected } = useWallet();
   const { claimMilestone, getAvailableMilestones, loading, error } = useCampaignTransactions();
   
   const [availableMilestones, setAvailableMilestones] = useState([]);
   const [claimingMilestone, setClaimingMilestone] = useState(null);
+  const [userAddress, setUserAddress] = useState(null);
+
+  // Get user address when wallet connects
+  useEffect(() => {
+    const getUserAddress = async () => {
+      if (connected && wallet) {
+        try {
+          const address = await wallet.getChangeAddress();
+          setUserAddress(address);
+        } catch (err) {
+          console.error('Failed to get wallet address:', err);
+        }
+      } else {
+        setUserAddress(null);
+      }
+    };
+    getUserAddress();
+  }, [connected, wallet]);
 
   // Check available milestones when component mounts or wallet changes
   useEffect(() => {
-    if (isConnected && walletInfo && campaign) {
-      const milestones = getAvailableMilestones(campaign, walletInfo.address);
+    if (connected && userAddress && campaign) {
+      const milestones = getAvailableMilestones(campaign, userAddress);
       setAvailableMilestones(milestones);
     }
-  }, [isConnected, walletInfo, campaign, getAvailableMilestones]);
+  }, [connected, userAddress, campaign, getAvailableMilestones]);
 
   const handleClaimMilestone = async (milestonePercentage) => {
-    if (!isConnected || !wallet) {
+    if (!connected || !wallet) {
       alert('Please connect your wallet first');
       return;
     }
@@ -36,8 +54,10 @@ export function MilestoneClaiming({ campaign }) {
       alert(`🎉 Milestone ${milestonePercentage}% claimed successfully!\n\nTransaction Hash: ${txHash}\n\nView on Testnet Explorer:\n${testnetExplorerUrl}`);
       
       // Refresh available milestones
-      const updatedMilestones = getAvailableMilestones(campaign, walletInfo.address);
-      setAvailableMilestones(updatedMilestones);
+      if (userAddress) {
+        const updatedMilestones = getAvailableMilestones(campaign, userAddress);
+        setAvailableMilestones(updatedMilestones);
+      }
       
     } catch (err) {
       console.error('Claim failed:', err);
@@ -52,8 +72,8 @@ export function MilestoneClaiming({ campaign }) {
   }
 
   // Check if user is the beneficiary
-  const userIsBeneficiary = isConnected && walletInfo && 
-    walletInfo.address === campaign.beneficiary;
+  const userIsBeneficiary = connected && userAddress && 
+    userAddress === campaign.beneficiary;
 
   if (!userIsBeneficiary) {
     return (

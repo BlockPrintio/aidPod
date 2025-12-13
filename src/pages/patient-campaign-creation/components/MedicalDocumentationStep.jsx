@@ -7,10 +7,10 @@ const MedicalDocumentationStep = ({ formData, updateFormData, errors }) => {
   const [uploadProgress, setUploadProgress] = useState({});
 
   const documentTypes = [
-    { id: 'medical_report', label: 'Medical Report', required: true, icon: 'FileText' },
-    { id: 'doctor_prescription', label: 'Doctor Prescription', required: true, icon: 'Pill' },
-    { id: 'treatment_plan', label: 'Treatment Plan', required: true, icon: 'Calendar' },
-    { id: 'cost_estimate', label: 'Cost Estimate', required: true, icon: 'Receipt' },
+    { id: 'medical_report', label: 'Medical Report', required: false, icon: 'FileText' },
+    { id: 'doctor_prescription', label: 'Doctor Prescription', required: false, icon: 'Pill' },
+    { id: 'treatment_plan', label: 'Treatment Plan', required: false, icon: 'Calendar' },
+    { id: 'cost_estimate', label: 'Cost Estimate', required: false, icon: 'Receipt' },
     { id: 'lab_results', label: 'Lab Results', required: false, icon: 'TestTube' },
     { id: 'imaging_scans', label: 'Imaging/Scans', required: false, icon: 'Scan' },
     { id: 'insurance_docs', label: 'Insurance Documents', required: false, icon: 'Shield' },
@@ -112,7 +112,7 @@ const MedicalDocumentationStep = ({ formData, updateFormData, errors }) => {
               <ul className="list-disc list-inside space-y-1 text-xs">
                 <li>All documents are stored securely on IPFS (InterPlanetary File System)</li>
                 <li>Supported formats: PDF, JPG, PNG, DOC, DOCX (Max 10MB per file)</li>
-                <li>Required documents must be uploaded for campaign verification</li>
+                <li>Upload medical documents to increase campaign credibility and trust</li>
                 <li>Ensure all personal information is clearly visible and legible</li>
               </ul>
             </div>

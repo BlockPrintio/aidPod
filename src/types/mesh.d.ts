@@ -4,16 +4,6 @@ export interface Asset {
   quantity: string;
 }
 
-export interface MeshWallet {
-  getUtxos: () => Promise<UTxO[]>;
-  getChangeAddress: () => Promise<string>;
-  getBalance: () => Promise<Asset[]>;
-  getNetworkId: () => Promise<number>;
-  signTx: (tx: string) => Promise<string>;
-  submitTx: (tx: string) => Promise<string>;
-  [key: string]: unknown;
-}
-
 export interface UTxO {
   input: {
     txHash: string;
