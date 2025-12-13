@@ -9,8 +9,16 @@ export default defineConfig({
   build: {
     outDir: "dist",
     chunkSizeWarningLimit: 2000,
+    sourcemap: false, // Disable sourcemaps to reduce memory usage
+    minify: 'esbuild', // Use esbuild instead of terser (faster, less memory)
     rollupOptions: {
-      // Remove readable-stream from external - let polyfills handle it
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-mesh': ['@meshsdk/core', '@meshsdk/react'],
+          'vendor-ui': ['framer-motion', 'recharts', 'd3'],
+        }
+      }
     }
   },
   optimizeDeps: {
