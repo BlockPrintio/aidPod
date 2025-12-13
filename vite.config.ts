@@ -11,17 +11,39 @@ export default defineConfig({
     chunkSizeWarningLimit: 2000,
     sourcemap: false, // Disable sourcemaps to reduce memory usage
     minify: 'esbuild', // Use esbuild instead of terser (faster, less memory)
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true
+    },
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-mesh': ['@meshsdk/core', '@meshsdk/react'],
-          'vendor-ui': ['framer-motion', 'recharts', 'd3'],
+        manualChunks: (id) => {
+          // Keep Mesh SDK together - don't split it
+          if (id.includes('@meshsdk')) {
+            return 'vendor-mesh';
+          }
+          // React and related
+          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+            return 'vendor-react';
+          }
+          // UI libraries
+          if (id.includes('framer-motion') || id.includes('recharts') || id.includes('d3')) {
+            return 'vendor-ui';
+          }
+          // Everything else from node_modules
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
         }
       }
     }
   },
   optimizeDeps: {
+    include: [
+      '@meshsdk/core',
+      '@meshsdk/react',
+      'readable-stream'
+    ],
     esbuildOptions: {
       define: {
         global: 'globalThis'
