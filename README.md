@@ -121,7 +121,7 @@ For issues or questions:
 Review error messages carefully
 Check all prerequisites are met
 Verify all tokens are present
-Ensure sufficient collateral for script execution
+Ensure sufficient collateral for script execution.
 
 
 Built with Aiken & MeshJS on Cardano 🚀
