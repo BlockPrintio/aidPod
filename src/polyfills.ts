@@ -1,46 +1,24 @@
-import { Buffer } from 'buffer';
-import stream from 'stream-browserify';
-import util from 'util';
-import process from 'process';
-import assert from 'assert';
+// Polyfills for browser compatibility
+// This file ensures all necessary globals are available before the app starts
 
-// Extend Window interface for polyfills
-declare global {
-  interface Window {
-    Buffer: typeof Buffer;
-    process: typeof process;
-    global: Window;
-    stream: typeof stream;
-    util: typeof util;
-    assert: typeof assert;
-  }
-}
+import { Buffer } from 'buffer/';
+import process from 'process/browser';
 
-// Set up global polyfills
+// Buffer polyfill
 if (typeof window !== 'undefined') {
-  window.Buffer = window.Buffer || Buffer;
-  window.process = window.process || process;
-  window.global = window;
-  window.stream = stream;
-  window.util = util;
-  window.assert = assert;
+  if (!window.Buffer) {
+    window.Buffer = Buffer;
+  }
 
-  // Add readable-stream polyfills
-  if (!window.stream.Readable) {
-    window.stream.Readable = stream.Readable;
-    window.stream.Writable = stream.Writable;
-    window.stream.Duplex = stream.Duplex;
-    window.stream.Transform = stream.Transform;
-    window.stream.PassThrough = stream.PassThrough;
+  // Global polyfill
+  if (!window.global) {
+    window.global = window;
+  }
+
+  // Process polyfill
+  if (!window.process) {
+    window.process = process;
   }
 }
 
-// Export polyfills for direct imports if needed
-export {
-  Buffer,
-  stream,
-  util,
-  process,
-  assert
-};
-
+export {};
