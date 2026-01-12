@@ -1,58 +1,66 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 
-const DonationInterface = ({ campaign, onDonate }) => {
+const DonationInterface = ({ campaign, onDonate, isDonating = false, walletConnected = false }) => {
   const [donationAmount, setDonationAmount] = useState('');
-  const [selectedWallet, setSelectedWallet] = useState('');
-  const [isConnecting, setIsConnecting] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
-  const [walletBalance, setWalletBalance] = useState(0);
   const [showCustomAmount, setShowCustomAmount] = useState(false);
   const [donationMessage, setDonationMessage] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
 
   const presetAmounts = [50, 100, 250, 500, 1000, 2500];
   const ngnRate = 1600; // approximate NGN per ADA (placeholder)
-
-  const walletOptions = [
-    { value: 'nami', label: 'Nami Wallet', description: 'Most popular Cardano wallet' },
-    { value: 'eternl', label: 'Eternl Wallet', description: 'Advanced features and staking' },
-    { value: 'lace', label: 'Lace Wallet', description: 'IOG official wallet' },
-    { value: 'flint', label: 'Flint Wallet', description: 'Mobile-first experience' }
-  ];
-
-  useEffect(() => {
-    // Mock wallet balance
-    if (isConnected) {
-      setWalletBalance(15420.75);
-    }
-  }, [isConnected]);
-
-  const handleWalletConnect = async () => {
-    if (!selectedWallet) return;
-
-    setIsConnecting(true);
-    // Simulate wallet connection
-    setTimeout(() => {
-      setIsConnected(true);
-      setIsConnecting(false);
-    }, 2000);
-  };
+  const walletBalance = 15420.75; // Mock balance - in real app, get from wallet
 
   const handleDonate = async () => {
-    if (!donationAmount || !isConnected) return;
+    console.log('🎯 DonationInterface handleDonate called');
+    console.log('Donation amount:', donationAmount);
+    console.log('isDonating:', isDonating);
+    console.log('walletConnected:', walletConnected);
+    console.log('onDonate function:', typeof onDonate);
 
+    // Validate donation amount
+    const amount = parseFloat(donationAmount);
+    if (!amount || amount <= 0) {
+      console.warn('❌ Invalid donation amount:', amount);
+      return;
+    }
+
+    // Check if already processing
+    if (isDonating) {
+      console.warn('❌ Donation already in progress');
+      return;
+    }
+
+    // Check if onDonate function is provided
+    if (!onDonate || typeof onDonate !== 'function') {
+      console.error('❌ onDonate function not provided or invalid');
+      return;
+    }
+
+    // Prepare donation data
     const donationData = {
-      amount: parseFloat(donationAmount),
+      amount: amount,
       message: donationMessage,
       anonymous: isAnonymous,
-      wallet: selectedWallet,
       campaignId: campaign?.id
     };
 
-    onDonate(donationData);
+    console.log('📤 Calling onDonate with data:', donationData);
+
+    // Call parent's onDonate handler
+    try {
+      await onDonate(donationData);
+      console.log('✅ onDonate completed');
+      
+      // Reset form on success
+      setDonationAmount('');
+      setDonationMessage('');
+      setShowCustomAmount(false);
+    } catch (error) {
+      console.error('❌ Error calling onDonate:', error);
+    }
   };
 
   const formatNGN = (adaAmount) => {
@@ -81,45 +89,8 @@ const DonationInterface = ({ campaign, onDonate }) => {
           </p>
         </div>
 
-        {/* Wallet Connection */}
-        {!isConnected ? (
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-foreground mb-3 block">
-                Choose Wallet
-              </label>
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                {walletOptions.map((wallet) => (
-                  <button
-                    key={wallet.value}
-                    onClick={() => setSelectedWallet(wallet.value)}
-                    className={`flex flex-col items-center justify-center p-4 border rounded-medical transition-all duration-200 ${selectedWallet === wallet.value
-                      ? 'border-primary bg-primary/5 text-primary shadow-sm'
-                      : 'border-border hover:border-primary/50 text-muted-foreground hover:text-foreground'
-                      }`}
-                  >
-                    <div className="w-10 h-10 mb-2 rounded-full bg-muted flex items-center justify-center">
-                      <Icon name="Wallet" size={20} className={selectedWallet === wallet.value ? 'text-primary' : 'text-muted-foreground'} />
-                    </div>
-                    <span className="text-sm font-medium">{wallet.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <Button
-              variant="default"
-              fullWidth
-              loading={isConnecting}
-              disabled={!selectedWallet}
-              onClick={handleWalletConnect}
-              iconName="Wallet"
-              iconPosition="left"
-            >
-              {isConnecting ? 'Connecting...' : 'Connect Wallet'}
-            </Button>
-          </div>
-        ) : (
+        {/* Wallet Connection Status */}
+        {walletConnected ? (
           <div className="bg-success/10 border border-success/20 p-4 rounded-medical">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
@@ -131,10 +102,17 @@ const DonationInterface = ({ campaign, onDonate }) => {
               </span>
             </div>
           </div>
+        ) : (
+          <div className="bg-warning/10 border border-warning/20 p-4 rounded-medical">
+            <div className="flex items-center space-x-2">
+              <Icon name="AlertTriangle" size={16} className="text-warning" />
+              <span className="text-sm font-medium text-warning">Please connect your wallet to donate</span>
+            </div>
+          </div>
         )}
 
         {/* Donation Amount Selection */}
-        {isConnected && (
+        {walletConnected && (
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium text-foreground mb-3 block">
@@ -255,13 +233,23 @@ const DonationInterface = ({ campaign, onDonate }) => {
             <Button
               variant="default"
               fullWidth
-              disabled={!isValidAmount()}
-              onClick={handleDonate}
-              iconName="Heart"
+              disabled={!isValidAmount() || isDonating || !walletConnected}
+              onClick={(e) => {
+                console.log('🔘 Donate button clicked');
+                e.preventDefault();
+                handleDonate();
+              }}
+              iconName={isDonating ? "Loader" : "Heart"}
               iconPosition="left"
+              loading={isDonating}
               className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
             >
-              Donate {donationAmount ? `${donationAmount} ADA` : 'Now'}
+              {isDonating 
+                ? 'Processing Donation...' 
+                : walletConnected
+                  ? `Donate ${donationAmount ? `${donationAmount} ADA` : 'Now'}`
+                  : 'Connect Wallet to Donate'
+              }
             </Button>
 
             {/* Trust Indicators */}

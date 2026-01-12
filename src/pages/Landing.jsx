@@ -1,11 +1,24 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Icon from '../components/AppIcon';
 import Button from '../components/ui/Button';
 import Header from '../components/ui/Header';
 import DNASimulation from '../components/DNASimulation';
 
+import { useWallet } from '@meshsdk/react';
+
 const Landing = () => {
+  console.log('Landing component rendering...');
+  
+  const { setPersist } = useWallet();
+  
+  useEffect(() => {
+    try {
+      setPersist(true);
+    } catch (error) {
+      console.error('Error setting persist:', error);
+    }
+  }, [setPersist]);
   const features = [
     {
       icon: 'Shield',

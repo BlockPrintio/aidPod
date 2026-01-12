@@ -3,14 +3,12 @@ import { Link, useLocation } from 'react-router-dom';
 import Icon from '../AppIcon';
 import Button from './Button';
 import WalletConnector from '../WalletConnector';
-// import { useWallet } from '../../context/WalletContext';
 
 const Header = ({
   userRole = null,
   isAuthenticated = false,
   onLogout = () => { }
 }) => {
-  // const { isConnected, wallet } = useWallet();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const location = useLocation();

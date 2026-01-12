@@ -1,7 +1,7 @@
 import { Deploy } from "../deploy";
 import { admin_token } from "../../lib/config";
-import { mConStr0, MeshTxBuilder, stringToHex } from "@meshsdk/core";
-import { provider, wallet } from "../../lib/utils";
+import { IWallet, mConStr0, MeshTxBuilder, stringToHex } from "@meshsdk/core";
+import { provider } from "../../lib/utils";
 
 /**
  * Register a new patient by minting a patient authentication token
@@ -12,10 +12,10 @@ import { provider, wallet } from "../../lib/utils";
  * 3. Exactly one token must be minted
  * 4. Token name must match pattern: {patient_name}PATIENT
  */
-export const registerPatient = async (patientName: string) => {
-  const changeAddress = await wallet.getChangeAddress();
-  const utxos = await wallet.getUtxos();
-  const collateral = (await wallet.getCollateral())[0];
+export const registerPatient = async (patientName: string, wallet: IWallet) => {
+  const changeAddress = await wallet?.getChangeAddress();
+  const utxos = await wallet?.getUtxos();
+  const collateral = (await wallet?.getCollateral())[0];
 
   const script = new Deploy(0);
   const { policyid, cbor } = await script.patient_registry(admin_token);
@@ -54,13 +54,7 @@ export const registerPatient = async (patientName: string) => {
 
     .complete();
 
-  const signedTx = await wallet.signTx(unsignedTx);
-  const txHash = await provider.submitTx(signedTx);
-
   return {
-    txHash,
-    policyId: policyid,
-    tokenName: patientName + "PATIENT",
-    asset,
+    unsignedTx,
   };
 };

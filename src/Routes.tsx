@@ -4,7 +4,6 @@ import ScrollToTop from "components/ScrollToTop";
 import ErrorBoundary from "components/ErrorBoundary";
 import NotFound from "pages/NotFound";
 import NotAuthorized from "pages/NotAuthorized";
-import ProtectedRoute from "components/routing/ProtectedRoute";
 import Landing from './pages/Landing';
 import CampaignDetailsAndDonation from './pages/campaign-details-donation';
 import HospitalVerificationDashboard from './pages/hospital-verification-dashboard';
@@ -17,13 +16,16 @@ import CreateCampaign from "./pages/CreateCampaign";
 import CampaignDetailsPage from "./pages/CampaignDetailsPage";
 
 const Routes = () => {
-  return (
-    <BrowserRouter>
-      <ErrorBoundary>
-      <ScrollToTop />
-      <RouterRoutes>
-        {/* Landing Page */}
-        <Route path="/" element={<Landing />} />
+  console.log('Routes component rendering...');
+  
+  try {
+    return (
+      <BrowserRouter>
+        <ErrorBoundary>
+        <ScrollToTop />
+        <RouterRoutes>
+          {/* Landing Page */}
+          <Route path="/" element={<Landing />} />
         
         {/* Campaign Discovery */}
         <Route path="/campaign-discovery-dashboard" element={<CampaignDiscoveryDashboard />} />
@@ -58,7 +60,17 @@ const Routes = () => {
       </RouterRoutes>
       </ErrorBoundary>
     </BrowserRouter>
-  );
+    );
+  } catch (error) {
+    console.error('Routes render error:', error);
+    return (
+      <div style={{ padding: "20px", textAlign: "center", color: "red" }}>
+        <h1>Routes Error</h1>
+        <p>{error?.message || 'Unknown error'}</p>
+        <pre>{error?.stack}</pre>
+      </div>
+    );
+  }
 };
 
 export default Routes;

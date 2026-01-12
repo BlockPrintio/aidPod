@@ -30,6 +30,12 @@ interface StoredCampaign extends CampaignData {
     transactionHash: string;
     timestamp: string;
   };
+  donations?: Array<{
+    amount: number;
+    donorAddress: string;
+    transactionHash: string;
+    timestamp: string;
+  }>;
 }
 
 interface CampaignStatistics {
@@ -49,6 +55,10 @@ class CampaignStorage {
   // Load campaigns from localStorage
   private loadCampaigns(): StoredCampaign[] {
     try {
+      // Check if localStorage is available (browser environment)
+      if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+        return [];
+      }
       const stored = localStorage.getItem(STORAGE_KEY);
       return stored ? JSON.parse(stored) : [];
     } catch (error) {
@@ -60,6 +70,10 @@ class CampaignStorage {
   // Save campaigns to localStorage
   private saveCampaigns(): void {
     try {
+      // Check if localStorage is available (browser environment)
+      if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+        return;
+      }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(this.campaigns));
     } catch (error) {
       console.error('Error saving campaigns to storage:', error);
@@ -124,18 +138,48 @@ class CampaignStorage {
   addDonation(campaignId: string, amount: number, donorAddress: string, transactionHash: string): StoredCampaign | null {
     const campaign = this.getCampaignById(campaignId);
     if (campaign) {
+      // Check if donation already exists
+      const existingDonation = campaign.donations?.find(d => d.transactionHash === transactionHash);
+      if (existingDonation) {
+        console.log('Donation already exists in campaign storage:', transactionHash);
+        return campaign;
+      }
+
+      // Create donation record
+      const donationRecord = {
+        amount,
+        donorAddress,
+        transactionHash,
+        timestamp: new Date().toISOString()
+      };
+
+      // Add to donations array (initialize if doesn't exist)
+      const donations = campaign.donations || [];
+      donations.push(donationRecord);
+
       const updatedCampaign = this.updateCampaign(campaignId, {
         currentAmount: campaign.currentAmount + amount,
         donorCount: campaign.donorCount + 1,
-        lastDonation: {
-          amount,
-          donorAddress,
-          transactionHash,
-          timestamp: new Date().toISOString()
-        }
+        lastDonation: donationRecord,
+        donations: donations
       });
       
-      console.log('✅ Donation added to campaign:', campaignId);
+      console.log('✅ Donation added to campaign:', campaignId, `Amount: ${amount} ADA`);
+      console.log(`📊 Campaign balance: ${updatedCampaign.currentAmount} ADA (${updatedCampaign.donations?.length || 0} donations)`);
+      
+      // Track donation in hospital tracking storage
+      try {
+        // Dynamic import to avoid circular dependency
+        import('./hospital-tracking').then(({ hospitalTracking }) => {
+          hospitalTracking.trackDonation(campaignId, amount, donorAddress, transactionHash);
+          console.log('✅ Donation tracked in hospital dashboard');
+        }).catch(error => {
+          console.warn('Could not track donation in hospital tracking:', error);
+        });
+      } catch (error) {
+        console.warn('Could not track donation in hospital tracking:', error);
+      }
+      
       return updatedCampaign || null;
     }
     return null;
