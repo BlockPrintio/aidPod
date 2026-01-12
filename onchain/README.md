@@ -1,159 +1,241 @@
+<div align="center">
 
-1. **Campaign Creation**
-   - Patient registers and connects their Cardano wallet
-   - Creates a campaign with medical documentation
-   - Selects their treating hospital for verification
-   - Sets funding goals and milestone requirements
-   
+# 🏥 AidPod - Decentralized Healthcare Fundraising
 
-2. **Hospital Verification**
-   - Hospital reviews medical documentation
-   - Verifies treatment costs and timeline
-   - Approves campaign through multi-signature transaction
-   - Monitors treatment progress for milestone releases
+**Empowering Transparent Healthcare Funding on Cardano**
 
-3. **Donor Contribution**
-   - Donors browse verified campaigns
-   - Connect their Cardano wallets
-   - Make contributions in ADA
-   - Receive transaction confirmations and updates
+[![Cardano](https://img.shields.io/badge/Cardano-Smart_Contract-blue?style=flat-square&logo=cardano)](https://cardano.org)
+[![Aiken](https://img.shields.io/badge/Built_with-Aiken-orange?style=flat-square)](https://aiken-lang.org)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
-4. **Fund Distribution**
-   - Funds are locked in the smart contract
-   - Released in milestones (25%, 50%, 75%, 100%)
-   - Each release requires hospital verification
-   - Automatic refunds if campaign is cancelled
+</div>
 
-5. **Campaign Monitoring**
-   - Real-time tracking of contributions
-   - Milestone completion updates
-   - Hospital verification status
-   - Treatment progress updates
+---
 
-## 🔐 Smart Contract Featuresl Crowdfunding on Cardano
+## 📋 Overview
 
-AidPod is a decentralized application (dApp) built on the Cardano blockchain that enables transparent and secure medical crowdfunding. By leveraging blockchain technology and smart contracts, AidPod creates a trustworthy platform where patients can raise funds for medical treatments with verified hospital oversight.
+**AidPod** is a revolutionary Cardano smart contract system that enables patients to create transparent fundraising campaigns with milestone-based fund releases to authorized hospitals. Built with security and accountability at its core, AidPod leverages NFT-based authentication to ensure only verified healthcare providers can access campaign funds.
 
-## 🌟 Key Features
+### ✨ Key Features
 
-- **Verified Medical Campaigns**
-  - Hospital-verified medical conditions and cost estimates
-  - Transparent fund usage through milestone-based releases
-  - Real-time tracking of campaign progress
+- 🔐 **NFT-Based Authentication** - Secure hospital and patient identity verification
+- 💰 **Milestone Fund Releases** - Incremental fund distribution based on treatment progress
+- 🛡️ **On-Chain Security** - Trustless validation through Cardano smart contracts
+- 🏥 **Hospital Authorization** - Only verified hospitals can claim campaign funds
+- 📊 **Transparent Tracking** - Complete on-chain audit trail for all transactions
 
-- **Secure Fund Management**
-  - Smart contract-enforced fund distribution
-  - Milestone-based fund releases with hospital verification
-  - Automatic refund mechanism for unsuccessful campaigns
-  - Multi-signature security for critical operations
+---
 
-- **Role-Based System**
-  - Patients: Create and manage medical campaigns
-  - Hospitals: Verify medical conditions and approve fund releases
-  - Donors: Contribute to campaigns with full transparency
+## 🏗️ Architecture
 
+### Core Components
 
-- **User-Friendly Interface**
-  - Intuitive campaign creation and management
-  - Real-time campaign discovery dashboard
-  - Integrated wallet management
-  - Mobile-responsive design
+| Component | Description | Token Type |
+|-----------|-------------|------------|
+| 🏥 **Hospital Authentication** | NFT tokens proving hospital identity | `{HospitalName}HOSPITAL` |
+| 👤 **Patient Authentication** | NFT tokens for patient registration | `{PatientName}PATIENT` |
+| 💼 **Campaign System** | Script-locked funds with milestone releases | Smart Contract UTxO |
 
-## � Smart Contract Features
+### 🏷️ Token Naming Convention
 
-### Core Validator Functionality
-- **Campaign Creation & Verification**
-  - Medical authority verification
-  - Milestone-based fund distribution
-  - Parameter validation and security checks
+Authentication tokens follow a strict naming pattern to ensure uniqueness and clarity:
 
-- **Fund Management**
-  - Secure contribution handling
-  - Milestone-based fund release
-  - Automatic refund mechanisms
-  - Multi-signature requirements
-
-- **Campaign Control**
-  - Status management (Active/Paused/Completed/Cancelled)
-  - Emergency intervention capabilities
-  - Medical authority oversight
-
-### Validator Security
-- Multi-signature transaction requirements
-- Medical authority verification
-- Time-gated milestone claims
-- Contribution limits and validations
-- Emergency control mechanisms
-
-## 🚀 Technical Stack
-
-### On-chain (Smart Contract)
-- **Aiken Language** - Type-safe Cardano validator development
-- **Plutus V3** - Advanced script capabilities
-- **Property Testing** - Comprehensive test suite for all validator functions
-- **Vodka** - Additional Aiken dependencies for advanced functionality
-
-
-
-## 📋 Prerequisites
-
-- Node.js (v18.x or higher)
-- npm or yarn
-- Cardano development environment
-- Aiken CLI (for smart contract development)
-
-## 🛠️ Installation & Development
-
-1. Clone the repository and install dependencies:
-   ```bash
-   git clone [repository-url]
-   cd aidpod
-   npm install
-   ```
-
-2. Set up environment variables:
-   ```bash
-   # Create a .env file with the following
-   VITE_BLOCKFROST_PROJECT_ID=[your-blockfrost-id]
-   VITE_CAMPAIGN_SCRIPT_ADDRESS=[validator-script-address]
-   ```
-
-
-
-
-
-### Smart Contract Development
-
-1. Navigate to the validator directory:
-   ```bash
-   cd onchain/aidpod_cf
-   ```
-
-2. Run the test suite:
-   ```bash
-   aiken check
-   ```
-
-3. Build the validator:
-   ```bash
-   aiken build
-   ```
-
-## 📁 Project Structure
-
-The project is organized into two main parts:
-
-### 1. Smart Contract (Onchain)
 ```
-onchain/
-└── aidpod_cf/           # Medical Crowdfunding Validator
-    ├── aiken.lock       # Lock file for dependencies
-    ├── aiken.toml      # Project configuration
-    ├── plutus.json     # Compiled Plutus contract
-    ├── README.md       # Contract documentation
-    ├── build/          # Build artifacts
-    ├── validators/     # Aiken Validator Scripts
-    │   └── cf.ak      # Main Campaign Validator
-    ├── lib/           # Supporting libraries
-    └── test/          # Contract tests
+Hospital Token Format: {HospitalName}HOSPITAL
+Patient Token Format:  {PatientName}PATIENT
 ```
+
+**Examples:**
+- `StJohnsHOSPITAL` - St. John's Hospital authentication token
+- `MayoHOSPITAL` - Mayo Clinic authentication token
+- `EmmanuelPATIENT` - Patient Emmanuel's authentication token
+
+---
+
+## 📜 On-Chain Validators
+
+### 1️⃣ Hospital Authentication Minting Policy
+
+**Purpose:** Mint and burn hospital authentication tokens
+
+#### Parameters
+
+```aiken
+admin_token: AssetClass  -- Admin authorization token
+```
+
+#### Redeemers
+
+```aiken
+MintAuth { hospital_name: ByteArray }  -- Mint hospital token
+BurnAuth                               -- Burn hospital token
+```
+
+#### ✅ Validation Rules
+
+- ✔️ Admin token must be present in wallet inputs
+- ✔️ Exactly **1 token** minted per transaction
+- ✔️ Token name must follow format: `{hospital_name}HOSPITAL`
+- ✔️ Anyone can burn tokens (permissionless burning)
+
+---
+
+### 2️⃣ Patient Authentication Minting Policy
+
+**Purpose:** Mint and burn patient authentication tokens
+
+#### Parameters
+
+```aiken
+admin_token: AssetClass  -- Admin authorization token
+```
+
+#### Redeemers
+
+```aiken
+MintAuth { patient_name: ByteArray }  -- Mint patient token
+BurnAuth                              -- Burn patient token
+```
+
+#### ✅ Validation Rules
+
+- ✔️ Admin token must be present in wallet inputs
+- ✔️ Exactly **1 token** minted per transaction
+- ✔️ Token name must follow format: `{patient_name}PATIENT`
+- ✔️ Anyone can burn tokens (permissionless burning)
+
+---
+
+### 3️⃣ Campaign Spend Validator
+
+**Purpose:** Lock funds for authorized hospital claims with milestone-based releases
+
+#### Parameters
+
+```aiken
+admin_token: AssetClass           -- Admin authorization token
+hospital_auth_policy: ByteArray   -- Hospital token policy ID
+```
+
+#### Datum Structure
+
+```aiken
+CampaignDatum {
+  authorized_hospital: ByteArray,  -- Hospital token name
+  campaign_active: Bool,           -- Campaign status
+  total_milestones: Int,           -- Total number of milestones
+  milestones_claimed: Int,         -- Number of milestones already claimed
+  milestone_amount: Int            -- Amount per milestone in lovelace
+}
+```
+
+#### Redeemer
+
+```aiken
+ClaimByHospital  -- Hospital claims funds for next milestone
+```
+
+#### ✅ Validation Rules
+
+- ✔️ Marker UTxO with datum must be in transaction inputs
+- ✔️ Marker must be located at same script address
+- ✔️ Campaign must be **active** (`campaign_active = True`)
+- ✔️ Hospital must possess matching authentication token
+- ✔️ Hospital wallet must sign the transaction
+- ✔️ `milestones_claimed < total_milestones` (milestones remaining)
+- ✔️ Claimed amount must equal exactly `milestone_amount`
+- ✔️ Datum must be updated with incremented `milestones_claimed`
+
+---
+
+## 🎯 Milestone Claim Process
+
+The milestone-based fund release system ensures transparency and accountability:
+
+```mermaid
+graph LR
+    A[Campaign Created] --> B[Milestone 1 Claimed]
+    B --> C[Datum Updated]
+    C --> D[Milestone 2 Claimed]
+    D --> E[Datum Updated]
+    E --> F[...]
+    F --> G[Final Milestone]
+    G --> H[Campaign Completed]
+    
+    style A fill:#e1f5ff
+    style H fill:#d4edda
+    style B fill:#fff3cd
+    style D fill:#fff3cd
+    style G fill:#fff3cd
+```
+
+### 📌 How It Works
+
+1. 🎬 **Campaign Initialization** - Patient creates campaign with defined milestones
+2. 💰 **Incremental Claims** - Hospital claims one milestone at a time
+3. 📝 **Automatic Tracking** - Datum updates after each successful claim
+4. 🔄 **Progressive Release** - Funds released as treatment progresses
+5. 🛡️ **Over-Claim Protection** - Smart contract prevents claiming beyond allocated amounts
+6. ✅ **Campaign Completion** - Remains active until all milestones are claimed
+
+### 🔑 Key Benefits
+
+- **Transparency:** Every fund release is recorded on-chain
+- **Accountability:** Hospitals must complete milestones to receive funds
+- **Security:** Smart contract enforces all validation rules
+- **Flexibility:** Customizable milestone structure per campaign
+- **Trust:** Donors can track exactly how funds are being used
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- [Aiken](https://aiken-lang.org) - Smart contract language
+- [Cardano Node](https://docs.cardano.org/getting-started/installing-the-cardano-node) - Blockchain interaction
+- Basic understanding of Cardano UTxO model
+
+### Building the Contracts
+
+```bash
+# Build all validators
+aiken build
+
+# Run tests
+aiken check
+
+# Generate blueprints
+aiken blueprint
+```
+
+---
+
+## 📖 Documentation
+
+For detailed implementation guides and API references, please refer to:
+
+- [Aiken Documentation](https://aiken-lang.org/docs)
+- [Cardano Developer Portal](https://developers.cardano.org)
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions from the community! Please feel free to submit issues, fork the repository, and create pull requests.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+
+**Built with ❤️ for transparent healthcare funding**
+
+[Report Bug](https://github.com/yourusername/aidpod/issues) · [Request Feature](https://github.com/yourusername/aidpod/issues) · [Documentation](https://github.com/yourusername/aidpod/wiki)
+
+</div>

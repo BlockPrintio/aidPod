@@ -1,21 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '../../../../../lib/prisma';
-
-// Helper function to extract wallet address from request headers
-function getWalletAddress(request: NextRequest): string | null {
-  return request.headers.get('x-wallet-address');
-}
-
-// Helper function to validate wallet authentication
-function validateWalletAuth(request: NextRequest): { isValid: boolean; walletAddress?: string } {
-  const walletAddress = getWalletAddress(request);
-  
-  if (!walletAddress) {
-    return { isValid: false };
-  }
-
-  return { isValid: true, walletAddress };
-}
+import { requireAuth } from '../../../../../lib/middlewares/auth';
+import { apiRateLimiter } from '../../../../../lib/middlewares/rate-limit';
+import { handleError, AppError } from '../../../../../lib/errors/handler';
+import { logger } from '../../../../../lib/logger';
 
 // PUT /api/hospital/[id]/verify - Verify hospital
 export async function PUT(
@@ -23,53 +11,42 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Validate wallet authentication
-    const auth = validateWalletAuth(request);
-    if (!auth.isValid) {
-      return NextResponse.json(
-        { error: 'Wallet address is required in headers' },
-        { status: 401 }
-      );
-    }
+    // Rate limiting
+    const rateLimitResponse = apiRateLimiter(request);
+    if (rateLimitResponse) return rateLimitResponse;
+
+    // Authentication
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
 
     const { id } = params;
     const { status } = await request.json();
 
     if (!status) {
-      return NextResponse.json(
-        { error: 'Status is required' },
-        { status: 400 }
-      );
+      throw new AppError('Status is required', 400);
     }
 
     // Validate status values
     const validStatuses = ['PENDING', 'VERIFIED', 'REJECTED'];
     if (!validStatuses.includes(status)) {
-      return NextResponse.json(
-        { error: 'Invalid status. Must be PENDING, VERIFIED, or REJECTED' },
-        { status: 400 }
+      throw new AppError(
+        'Invalid status. Must be PENDING, VERIFIED, or REJECTED',
+        400
       );
     }
 
     const hospital = await prisma.hospital.update({
       where: { id: parseInt(id) },
-      data: { status }
+      data: { status },
     });
+
+    logger.info(`Hospital ${hospital.id} status updated to ${status} by ${auth.walletAddress}`);
 
     return NextResponse.json({
       message: 'Hospital verification status updated successfully',
-      hospital
+      hospital,
     });
   } catch (error) {
-    console.error('Hospital verification error:', error);
-    
-    if (error instanceof Error && error.message.includes('not found')) {
-      return NextResponse.json({ error: 'Hospital not found' }, { status: 404 });
-    }
-
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
+    return handleError(error);
   }
 }

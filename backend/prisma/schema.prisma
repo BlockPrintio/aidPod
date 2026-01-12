@@ -12,7 +12,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  
 }
 
 
@@ -28,6 +27,12 @@ datasource db {
   verificationDoc String? // Supabase file path 
   walletAddress String? @unique // For on-chain verification 
   status        HospitalStatus @default(PENDING)
+  
+  // NFT Tracking Fields
+  nftMinted     Boolean   @default(false)
+  nftTokenId    String?   @unique
+  nftMintedAt   DateTime?
+  
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -49,9 +54,15 @@ firstname String
 lastname  String
 email     String?  @unique
 age       Int?
-walletaddrss String? @unique // For signing transactions 
+walletAddress String? @unique // For signing transactions
+
+// NFT Tracking Fields
+nftMinted     Boolean   @default(false)
+nftTokenId    String?   @unique
+nftMintedAt   DateTime?
+
 createdAt DateTime @default(now())
-updated DateTime @updatedAt
+updatedAt DateTime @updatedAt
 
 // Relations
 hospital  Hospital? @relation(fields: [hospitalId], references: [id])
@@ -79,6 +90,7 @@ hospitalId Int?
   escrowAddress String? // Escrow address for the campaign
 
   status         CampaignStatus @default(PENDING)
+  claimed        Boolean @default(false) // Whether funds have been claimed by hospital
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

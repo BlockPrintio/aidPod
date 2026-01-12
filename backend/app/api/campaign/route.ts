@@ -1,119 +1,93 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-// Local uploadToIPFS implementation to avoid missing module error
-async function uploadToIPFS(fileBuffer: Buffer, filename: string): Promise<string> {
-  // Fallback implementation: return a data URL for the uploaded file.
-  // This avoids depending on an external uploader module while preserving
-  // the same function signature used by the route.
-  const ext = filename.split('.').pop()?.toLowerCase() || '';
-  const mime =
-    ext === 'png' ? 'image/png' :
-    ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' :
-    ext === 'gif' ? 'image/gif' :
-    'application/octet-stream';
-
-  return `data:${mime};base64,${fileBuffer.toString('base64')}`;
-}
-
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_ANON_KEY!
-);
-
-// Helper function to extract wallet address from request headers
-function getWalletAddress(request: NextRequest): string | null {
-  return request.headers.get('x-wallet-address');
-}
-
-// Helper function to validate wallet authentication
-function validateWalletAuth(request: NextRequest): { isValid: boolean; walletAddress?: string } {
-  const walletAddress = getWalletAddress(request);
-  
-  if (!walletAddress) {
-    return { isValid: false };
-  }
-
-  return { isValid: true, walletAddress };
-}
+import { prisma } from '../../../lib/prisma';
+import { uploadToSupabase } from '../../../lib/storage/supabase';
+import { requireAuth, optionalAuth } from '../../../lib/middlewares/auth';
+import { apiRateLimiter } from '../../../lib/middlewares/rate-limit';
+import { handleError } from '../../../lib/errors/handler';
+import { validateImageFile } from '../../../lib/validators/file-validator';
+import { campaignCreationSchema } from '../../../lib/validators/schemas';
+import { logger } from '../../../lib/logger';
 
 // POST /api/campaign - Create a new campaign with image upload
 export async function POST(request: NextRequest) {
   try {
-    // Validate wallet authentication
-    const auth = validateWalletAuth(request);
-    if (!auth.isValid) {
-      return NextResponse.json(
-        { error: 'Wallet address is required in headers' },
-        { status: 401 }
-      );
-    }
+    // Rate limiting
+    const rateLimitResponse = apiRateLimiter(request);
+    if (rateLimitResponse) return rateLimitResponse;
+
+    // Authentication
+    const auth = await requireAuth(request);
+    if (auth instanceof NextResponse) return auth;
 
     const formData = await request.formData();
-    
-    // Extract form fields
-    const patient_id = formData.get('patient_id') as string;
-    const hospital_id = formData.get('hospital_id') as string;
-    const title = formData.get('title') as string;
-    const amount_needed = formData.get('amount_needed') as string;
-    const duration_days = formData.get('duration_days') as string;
-    const story = formData.get('story') as string;
-    const hospitalName = formData.get('hospitalName') as string;
+
+    // Extract and validate fields
+    const data = {
+      patientId: parseInt(formData.get('patient_id') as string),
+      hospitalId: parseInt(formData.get('hospital_id') as string),
+      title: formData.get('title') as string,
+      story: formData.get('story') as string,
+      amountNeeded: parseFloat(formData.get('amount_needed') as string),
+      duration: parseInt(formData.get('duration_days') as string),
+      hospitalName: formData.get('hospitalName') as string,
+    };
+
+    // Validate with Zod
+    const validated = campaignCreationSchema.parse(data);
+
+    // Handle image upload
+    let conditionImage: string | null = null;
     const image = formData.get('image') as File;
 
-    // Validate required fields
-    if (!patient_id || !hospital_id || !title || !amount_needed || !duration_days || !story || !hospitalName) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
-
-
-    let image_ipfs: string | null = null;
-
-    // Upload image to IPFS if file is provided
     if (image) {
+      const validation = validateImageFile(image);
+      if (!validation.valid) {
+        return NextResponse.json(
+          { error: validation.error },
+          { status: 400 }
+        );
+      }
+
       const imageBuffer = await image.arrayBuffer();
-      image_ipfs = await uploadToIPFS(Buffer.from(imageBuffer), image.name);
+      conditionImage = await uploadToSupabase(
+        Buffer.from(imageBuffer),
+        image.name,
+        'campaign-images'
+      );
+      logger.info(`Image uploaded to Supabase: ${conditionImage}`);
     }
 
-    // Insert campaign into Supabase
-    const { data, error } = await supabase
-      .from('campaigns')
-      .insert({
-        patient_id: parseInt(patient_id),
-        hospital_id: parseInt(hospital_id),
-        title,
-        image_ipfs,
-        amount_needed: parseFloat(amount_needed),
-        duration_days: parseInt(duration_days),
-        story,
-        hospital_name: hospitalName,
-        status: 'pending'
-      })
-      .select()
-      .single();
+    // Create campaign
+    const campaign = await prisma.campaign.create({
+      data: {
+        patientId: validated.patientId,
+        hospitalId: validated.hospitalId,
+        title: validated.title,
+        story: validated.story,
+        conditionImage,
+        amountNeeded: validated.amountNeeded,
+        amountRaised: 0,
+        duration: validated.duration,
+        hospitalName: validated.hospitalName,
+        status: 'PENDING',
+      },
+      include: {
+        patient: true,
+        hospital: true,
+      },
+    });
 
-    if (error) {
-      console.error('Supabase error:', error);
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
+    logger.info(`Campaign created: ${campaign.id} by wallet: ${auth.walletAddress}`);
 
     return NextResponse.json(
-      { 
-        message: 'Campaign created successfully', 
-        campaign: data 
+      {
+        message: 'Campaign created successfully',
+        campaign
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error('Campaign creation error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
+    return handleError(error);
   }
 }
 
@@ -125,64 +99,80 @@ export async function GET(request: NextRequest) {
 
     if (id) {
       // Get specific campaign
-      const { data, error } = await supabase
-        .from('campaigns')
-        .select(`
-          *,
-          patient:patients(*),
-          hospital:hospitals(*),
-          documents(*),
-          donations(*)
-        `)
-        .eq('id', id)
-        .single();
+      const campaign = await prisma.campaign.findUnique({
+        where: { id: parseInt(id) },
+        include: {
+          patient: true,
+          hospital: true,
+          documents: true,
+          donations: true,
+        },
+      });
 
-      if (error) {
-        return NextResponse.json({ error: 'Campaign not found' }, { status: 404 });
+      if (!campaign) {
+        return NextResponse.json(
+          { error: 'Campaign not found' },
+          { status: 404 }
+        );
       }
 
-      return NextResponse.json({ campaign: data });
+      return NextResponse.json({ campaign });
     }
 
     // Get all campaigns with pagination
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const status = searchParams.get('status');
-    
-    let query = supabase
-      .from('campaigns')
-      .select(`
-        *,
-        patient:patients(*),
-        hospital:hospitals(*),
-        documents(*),
-        donations(*)
-      `, { count: 'exact' });
 
-    if (status) {
-      query = query.eq('status', status);
-    }
+    const where: any = {};
+    if (status) where.status = status;
 
-    const { data, error, count } = await query
-      .range((page - 1) * limit, page * limit - 1)
-      .order('created_at', { ascending: false });
+    const [campaigns, total] = await Promise.all([
+      prisma.campaign.findMany({
+        where,
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          patient: {
+            select: {
+              id: true,
+              firstname: true,
+              lastname: true,
+              email: true,
+            },
+          },
+          hospital: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              status: true,
+            },
+          },
+          donations: {
+            select: {
+              id: true,
+              amount: true,
+              donorAddress: true,
+              createdAt: true,
+            },
+          },
+        },
+      }),
+      prisma.campaign.count({ where }),
+    ]);
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
+    logger.debug(`Retrieved ${campaigns.length} campaigns (page ${page})`);
 
     return NextResponse.json({
-      campaigns: data,
-      total: count || 0,
+      campaigns,
+      total,
       page,
       limit,
-      totalPages: Math.ceil((count || 0) / limit)
+      totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
-    console.error('Get campaigns error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Internal server error' },
-      { status: 500 }
-    );
+    return handleError(error);
   }
 }
