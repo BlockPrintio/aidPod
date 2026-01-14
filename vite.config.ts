@@ -8,12 +8,17 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 export default defineConfig({
   build: {
     outDir: "dist",
-    chunkSizeWarningLimit: 2000,
+    chunkSizeWarningLimit: 3000,
+    sourcemap: false,
+    minify: 'esbuild',
     rollupOptions: {
-      external: ['readable-stream']
+      output: {
+        manualChunks: undefined
+      }
     }
   },
   optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom'],
     esbuildOptions: {
       define: {
         global: 'globalThis'
@@ -25,12 +30,13 @@ export default defineConfig({
     react(),
     tagger(),
     nodePolyfills({
-      globals: {
-        Buffer: true,
+      globals: { 
+        Buffer: true, 
         global: true,
-        process: true,
+        process: true
       },
-      protocolImports: true,
+      exclude: ['fs'],
+      protocolImports: true
     }),
   ],
   server: {
